@@ -1,0 +1,67 @@
+Allen Park 48101
+Belleville 48111
+Canton 48187
+Canton 48188
+Dearborn 48120
+Dearborn 48124
+Dearborn 48126	
+Dearborn 48128	
+Dearborn Heights 48125
+Dearborn Heights 48127	
+Detroit 48201	
+Detroit 48202
+Detroit 48204	
+Detroit 48205	
+Detroit 48206
+Detroit 48207	
+Detroit 48208	
+Detroit 48209
+Detroit 48210	
+Detroit 48211	
+Detroit 48213
+Detroit 48214	
+Detroit 48215	
+Detroit 48216
+Detroit 48217	
+Detroit 48219	
+Detroit 48221
+Detroit 48223	
+Detroit 48224	
+Detroit 48226
+Detroit 48227	
+Detroit 48228	
+Detroit 48234
+Detroit 48235	
+Detroit 48238	
+Detroit 48242
+Detroit 48243	
+Ecorse 48229	
+Flat Rock 48134
+Garden City 48135	
+Grosse Ile 48138	
+Grosse Pointe Park 48230
+Grosse Pointe Woods 48236	
+Hamtramck 48212	
+Harper Woods 48225
+Highland Park 48203	
+Inkster 48141	
+Lincoln Park 48146
+Livonia 48150	
+Livonia 48152	
+Livonia 48154
+Melvindale 48122	
+New Boston 48164	
+Northville 48167
+Plymouth 48170	
+Redford 48239	
+Redford 48240
+River Rouge 48218	
+Rockwood 48173	
+Romulus 48174
+Southgate 48195	
+Taylor 48180	
+Trenton 48183
+Wayne 48184	
+Westland 48185	
+Westland 48186
+Wyandotte 48192
