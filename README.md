@@ -1,6 +1,6 @@
 # detroit-crime-education
 
-Folder Structure
+Folder Structure                                                                                       
 |
 |____ *Data*
 |     |____ Clean      Contains all the cleaned datasets
