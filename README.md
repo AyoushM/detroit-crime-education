@@ -1,6 +1,5 @@
 # detroit-crime-education
 
-
 Folder Structure
 |
 |____ *Data*
