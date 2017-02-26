@@ -1,0 +1,219 @@
+---
+title: "Preliminaary Analysis"
+author: "vaibhavi"
+date: "February 19, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Step 0: Load the Data
+Let's read the file which contains the seatbelt data
+```{r setwd("C:/Users/Vibes/Desktop/573-Data Science-1/Project")}
+crimes.detroit = read.csv("Detroit-Crimes.csv")
+```
+
+### Step 1: Data Cleaning
+What kind of data are in the Detroit Crime data? 
+```{r}
+#Find class of seatbelts (dataframe)
+class(crimes.detroit)
+
+#Find the dimensions(rows , columns) of seatbelts
+dim(crimes.detroit)
+#Names of columns in dataframe
+colnames(crimes.detroit)
+#Summary data in dataframe
+summary(crimes.detroit)
+```
+
+How many cases are in the observed data?
+```{r}
+nrow(crimes.detroit)
+head(crimes.detroit)
+#So many factors!!
+
+
+
+```
+
+```{r}
+#Factor
+colnames(crimes.detroit)
+crimes.detroit$robberies<- as.numeric(as.factor(crimes.detroit$robberies))
+crimes.detroit$arson<- as.numeric(as.factor(crimes.detroit$arson))
+
+crimes.detroit$assaults<- as.numeric(as.factor(crimes.detroit$assaults))
+crimes.detroit$assaults.100K<- as.numeric(as.factor(crimes.detroit$assaults.100K))
+
+crimes.detroit$burglaries<- as.numeric(as.factor(crimes.detroit$burglaries))
+crimes.detroit$burglaries.100K<- as.numeric(as.factor(crimes.detroit$burglaries.100K))
+
+crimes.detroit$thefts<- as.numeric(as.factor(crimes.detroit$thefts))
+crimes.detroit$thefts.100K<- as.numeric(as.factor(crimes.detroit$thefts.100K))
+
+crimes.detroit$auto.thefts<- as.numeric(as.factor(crimes.detroit$auto.thefts))
+crimes.detroit$auto.thefts.100K<- as.numeric(as.factor(crimes.detroit$auto.thefts.100K))
+
+
+head(crimes.detroit)
+summary(crimes.detroit)
+```
+
+what variables are observed for each month?
+```{r}
+#crimes.detroit
+crimes.detroit.100K = crimes.detroit[,c("year","robberies.100K", "arson.100K", "burglaries.100K","assaults.100K", "thefts.100K","auto.thefts.100K","murders.100K","rapes.100K")]
+sapply(crimes.detroit, typeof)
+
+
+#plot(crimes.detroit.100K)
+```
+
+```{r}
+
+```
+
+```{r}
+plot(crimes.detroit.100K$year, crimes.detroit.100K$rapes.100K, ylim=c(0,100), xlab="Year", ylab="Crimes per 100,000", main="Plotting crimes in Detroit per 100,000 people",type="o", lty=2 , lwd=2)
+
+points(crimes.detroit.100K$year, crimes.detroit.100K$murders.100K, lwd=2, type="o", lty=2, pch=3, col="red")
+```
+
+```{r}
+
+#install.packages("ggplot2")
+library(ggplot2)
+```
+
+```{r}
+crimes.detroit.100K
+
+#Using breaks of 30, to create 10 different bins in a range of 300
+qplot(crimes.detroit.100K$robberies.100K,
+      geom="histogram",
+      binwidth = 30,  
+      main = "Histogram for Robberies in Detroit", 
+      xlab = "Robberies per 100,000 individuals",  
+      col=I("yellow"),
+      fill=I("orange"))
+```
+
+
+
+```{r}
+#Using breaks of 20, to create 10 different bins in a range of 200
+qplot(crimes.detroit.100K$arson.100K,
+      geom="histogram",
+      binwidth = 20,  
+      main = "Histogram for Arson in Detroit", 
+      xlab = "Arson per 100,000 individuals",  
+      col=I("yellow"),
+      fill=I("orange"))
+```
+
+
+```{r}
+#Using breaks of 5, to create 20 different bins in a range of 100
+qplot(crimes.detroit.100K$rapes.100K
+,
+      geom="histogram",
+      binwidth = 5,  
+      main = "Histogram for Rapes in Detroit", 
+      xlab = "Rapes per 100,000 individuals",  
+      col=I("yellow"),
+      fill=I("lightgreen"))
+```
+
+
+```{r}
+#Using breaks of 2, to create 10 different bins in a range of 20
+qplot(crimes.detroit.100K$murders.100K,
+      geom="histogram",
+      binwidth = 2,  
+      main = "Histogram for Murders in Detroit", 
+      xlab = "Murders per 100,000 individuals",  
+      col=I("red"),
+      fill=I("pink"))
+```
+
+
+```{r}
+#Using breaks of 2, to create different bins in a range of 15
+qplot(crimes.detroit.100K$assaults.100K,
+      geom="histogram",
+      binwidth = 2,   
+      main = "Histogram for Assaults in Detroit", 
+      xlab = "Assaults per 100,000 individuals",        
+      col=I("blue"),
+      fill=I("lightblue"))
+```
+
+
+
+```{r}
+#Using breaks of 2 in a range of 15
+qplot(crimes.detroit.100K$burglaries.100K,
+      geom="histogram",
+      binwidth = 2,  
+      main = "Histogram for Burglaries in Detroit", 
+      xlab = "Burglaries per 100,000 individuals",  
+      col=I("blue"),
+      fill=I("lightblue"))
+
+```
+
+
+
+```{r}
+#Using breaks of 2 in a range of 15
+qplot(crimes.detroit.100K$thefts.100K,
+      geom="histogram",
+      binwidth = 2,  
+      main = "Histogram for Thefts in Detroit", 
+      xlab = "Thefts per 100,000 individuals",  
+      col=I("blue"),
+      fill=I("lightblue"))
+```
+
+
+
+```{r}
+#Using breaks of 2, to create 10 different bins in a range of 15
+qplot(crimes.detroit.100K$auto.thefts.100K,
+      geom="histogram",
+      binwidth = 2,  
+      main = "Histogram for Auto Thefts in Detroit", 
+      xlab = "Auto-Thefts per 100,000 individuals",  
+      col=I("blue"),
+      fill=I("lightblue"))
+```
+
+Putting it all together!
+```{r}
+ggplot(data=crimes.detroit.100K, aes(x=factor(year), y=robberies.100K)) + 
+    geom_line() +
+    geom_point()
+
+```
+```{r}
+library(ggplot2)
+library(reshape2)
+d <- melt(crimes.detroit.100K, id.vars="year")
+
+# Everything on the same plot
+
+ggplot(d, aes(year,value, col=variable)) + 
+  geom_point() + 
+  stat_smooth() 
+
+# Separate plots
+ggplot(d, aes(year,value)) + 
+  geom_point() + 
+  stat_smooth() +
+  facet_wrap(~variable)
+```
+
+
