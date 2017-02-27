@@ -216,4 +216,6 @@ ggplot(d, aes(year,value)) +
   facet_wrap(~variable)
 ```
 
+```{r}
 
+```
