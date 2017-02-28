@@ -19,6 +19,7 @@ head(zips)
 
 #Create a ZIP character column from ZIPCODE Factor Column (to be able to compare and filter)
 zips$ZIP = as.character(zips$ZIPCODE)
+nrow(zips)
 
 #There are many zips with code less than 40,000!
 badzips = subset(zips, zips$ZIP<40000)
@@ -29,6 +30,7 @@ dim(badzips)
 #The rest of the zips which have zip code > 40,000
 goodzips= subset(zips, zips$ZIP>=40000)
 goodzips
+nrow(goodzips)
 dim(goodzips)
 #36571 rows with good zip data possibly good zip codes :)
 
@@ -90,27 +92,44 @@ multi.goodzips
 
 
 #Since there are 267 multiple valued rows of zips, let's work them all this way, starting from 2nd row
+for(i in 2:8){
+  # Create a coordinate vector for api parameter
+  code <- c(multi.goodzips[i,LON],multi.goodzips[i,LAT])
+  #Reverse code using Google API
+  res <- revgeocode(code,output = "more")
+  cat("Reverse Geocoded Row Number " , i)
+  multi.goodzips[i,"FINALZIP"] <- res$postal_code
+}
+for(i in 10:240){
+  # Create a coordinate vector for api parameter
+  code <- c(multi.goodzips[i,LON],multi.goodzips[i,LAT])
+  #Reverse code using Google API
+  res <- revgeocode(code,output = "more")
+  cat("Reverse Geocoded Row Number " , i)
+  multi.goodzips[i,"FINALZIP"] <- res$postal_code
+}
 for(i in 242:267){
   # Create a coordinate vector for api parameter
   code <- c(multi.goodzips[i,LON],multi.goodzips[i,LAT])
   #Reverse code using Google API
   res <- revgeocode(code,output = "more")
+  cat("Reverse Geocoded Row Number " , i)
   multi.goodzips[i,"FINALZIP"] <- res$postal_code
 }
 
 multi.goodzips[9]$ZIPCODE
 multi.goodzips[241]$ZIPCODE
-#Error at 9th Row with a "null" value
-#Error  at 241st Row!
+#Error at 9th Row and 241st with a "null" value
+
 
 #Let's add actual values for rows 9, and 241 manually!!
 multi.goodzips[9,]
 #Lat = 42.43  Lon= -83.219
-#Border of 48235E, 48219W 
+#Border of 48235 E, 48219 W 
 
 multi.goodzips[241,]
 #Lat = 42.378 Lon= -83.231
-#48223NE, 48228SW
+#48223 NE, 48228 SW
 
 #####################
 #Doing the same analysis for the bad zips!
@@ -136,38 +155,87 @@ code
 #Reverse geocode 1st row alone using Google API
 res <- revgeocode(code, output = "more")
 badzips[1,"FINALZIP"] <- res$postal_code
-
 badzips[1,]
 
 
-#Row Numbers 1, 76, 87 are giving a problem
+#Row Numbers 1, 76 are confusing
+# 87 is creating a problem. It is not a correct location!
+for(i in 2:75){
+  # Create a coordinate vector for api parameter
+  code <- c(badzips[i,LON],badzips[i,LAT])
+  #Reverse code using Google API
+  cat("Reverse Geocoding for... Row Number : " ,i)
+  res <- revgeocode(code,output = "more")
+  badzips[i,"FINALZIP"] <- res$postal_code
+}
 
 for(i in 77:87){
   # Create a coordinate vector for api parameter
   code <- c(badzips[i,LON],badzips[i,LAT])
   #Reverse code using Google API
-  cat("Row Number : " ,i)
+  cat("Reverse Geocoding for... Row Number : " ,i)
   res <- revgeocode(code,output = "more")
   badzips[i,"FINALZIP"] <- res$postal_code
 }
 
 
+#Row number 1 and 77 are in CANADA!! :D
+badzips[1,]
+badzips[77,]
 
 
-#Row number 77 is in CANADA!! :D
-res
 #address street_number               route
 #1 2696 Jefferson Blvd, Windsor, ON N8T 3C7, Canada          2696 Jefferson Boulevard
 #neighborhood locality administrative_area_level_2 administrative_area_level_1 country
 #1 Forest Glade  Windsor                Essex County                     Ontario  Canada
 #postal_code
 #1     N8T 3C
-
-
-
 #################################################################################################################################
 
 #Next Steps
 
 #     Merging the final zip codes to incident data
 #     Creating 
+
+head(goodzips)
+head(multi.goodzips) #Final Zip Column
+head(badzips)        #Final Zip Column
+
+
+#Remove columns
+dim(goodzips)
+multi.goodzips= goodzips[grep(":",goodzips$ZIP),]
+
+write.csv(goodzips,"goodzips.csv")
+write.csv(badzips, "badzips.csv")
+write.csv(multi.goodzips, "multigoodzips.csv")
+
+ids = unique(multi.goodzips$X)
+
+goodzips = goodzips[!(goodzips$X%in%ids) ,]
+nrow(goodzips)              #36304
+nrow(multi.goodzips)        #  267 
+length(ids) 
+nrow(badzips)               #   87
+nrow(zips)                  #36658
+
+#Need a common FinalZip Column in the goodzips data table
+goodzips$FINALZIP= goodzips$ZIPCODE
+head(goodzips)
+
+class(goodzips$FINALZIP)       #Factor
+class(badzips$FINALZIP)        #Factor
+class(multi.goodzips$FINALZIP) #Factor
+
+
+#Binding together:  goodzips, badzips, multi.goodzips
+zip_code_lookup = data.table()
+zip_code_lookup = rbind(goodzips, multi.goodzips)
+zip_code_lookup = rbind(zip_code_lookup, badzips)
+
+#Write temporary file
+write.csv(zip_code_lookup,"lookuptemp.csv")
+
+#Clean up zip_code_lookup
+zip_code_lookup = zip_code_lookup[,c("X","LAT","LON","FINALZIP", "ZIP")]
+write.csv(zip_code_lookup,"ziplookup.csv")
