@@ -1,0 +1,125 @@
+---
+title: "merge-crime-education.Rmd"
+author: "vaibhavi"
+date: "March 1, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Examining Crime with Zips Data frame 
+Year, ZIP, No of crimes, No of schools in district, Mean Graduation Rate, Mean Dropput rate, Total graduates, total drop outs
+```{r}
+#setwd("~/Projects/Detroit Project")
+crime <- read.csv("crimewithzips.csv")
+colnames(crime)
+```
+[1] "X"                  "ROWNUM"             "CASEID"             "ADDRESS"           
+[5] "CATEGORY"           "OFFENSEDESCRIPTION" "INCIDENTDATE"       "HOUR"              
+[9] "SCA"                "PRECINCT"           "COUNCIL"            "NEIGHBORHOOD"      
+[13] "CENSUSTRACT"        "LON"                "LAT"                "LOCATION"          
+[17] "MONTH"              "YEAR"               "FINALZIP"           "ZIP_CHAR"   
+
+
+Crime Colnames to discard for final merged model:
+------------------------------------------
+X, Rownum, CaseId, Address, Precinct, OffenseDescription, IncidentDate, Hour, Category*, Neighbourhood, SCA
+Censustract, Lat, Lon, Location, Month, FinalZip(has errors)
+
+Crime Colnames to keep for merged model:
+----------------------------------
+Year, ZipChar, Number of crimes
+
+
+Crime Colnames to add for merged model:
+---------------------------------
+Number of violent crimes, number of non-violent, number of  white-collar/ blue-collar crimes
+IsViolent? Is Non-Violent? Is it white-collar? Is it Blue-collar? etc
+
+
+## Creating simplified Crime model
+```{r pressure, echo=FALSE}
+keep = c("YEAR", "ZIP_CHAR")
+simple.crime=crime[keep]
+colnames(simple.crime)
+
+simple.crime$NUM_CRIMES = 1
+colnames(simple.crime)
+head(simple.crime)
+
+simple.crime=aggregate(simple.crime$NUM_CRIMES, by=list(simple.crime$YEAR, simple.crime$ZIP_CHAR), FUN=sum)
+colnames(simple.crime)
+
+colnames(simple.crime) = c("YEAR", "ZIP", "NUM_CRIMES")
+
+head(simple.crime)
+summary(simple.crime)
+
+plot(simple.crime)
+```
+
+
+## Examining Education with Zips Data frame 
+Year, ZIP, No of crimes, No of schools in district, Mean Graduation Rate, Mean Dropput rate, Total graduates, total drop outs, 
+```{r}
+setwd("~/Projects/Detroit Project/detroit-crime-education/data/clean/Education")
+education <- read.csv("Education_Data_wLoc.csv")
+colnames(education)
+```
+
+ [1] "Location.Name"          "Rate.Year"              "Cohort.Graduation.Year" "Total.Cohort"          
+ [5] "Total.Graduated"        "OffTrack.Other"         "Dropouts"               "Graduation.Rate"       
+ [9] "Dropout.Rate"           "gradyear"               "enrollyear"             "School.Name"           
+ [13] "ZIP.Code"               "Latitude"               "Longitude" 
+ 
+
+Education Colnames to discard for merged model:
+------------------------------------------
+Location.Name, Total.Cohort, Rate.Year
+
+Education Colnames to keep for merged model:
+----------------------------------
+Cohort.Graduation.Year, Total.Cohort, Total.Graduated, OffTrack.Other, Dropouts, Graduation.Rate, Dropout.Rate, 
+
+
+Education Colnames to add for merged model:
+---------------------------------
+Number of Schools 
+
+
+## Creating simplified Education model
+```{r}
+#keep = c("YEAR", "ZIP_CHAR")
+#simple.crime=crime[keep]
+#colnames(simple.crime)
+
+#simple.crime$NUM_CRIMES = 1
+#colnames(simple.crime)
+#head(simple.crime)
+
+#simple.crime=aggregate(simple.crime$NUM_CRIMES, by=list(simple.crime$YEAR, simple.crime$ZIP_CHAR), FUN=sum)
+#colnames(simple.crime)
+
+#colnames(simple.crime) = c("YEAR", "ZIP", "NUM_CRIMES")
+
+#head(simple.crime)
+#summary(simple.crime)
+
+#plot(simple.crime)
+```
+
+Problem: 
+Inflated datasets!!!!
+
+## Merging the two simple models for education and crime!
+```{r}
+
+```
+
+
+## Machine Learning! Regression Models
+```{r}
+
+```
