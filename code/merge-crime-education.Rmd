@@ -56,6 +56,8 @@ colnames(simple.crime) = c("YEAR", "ZIP", "NUM_CRIMES")
 
 head(simple.crime)
 summary(simple.crime)
+simple.crime
+
 
 plot(simple.crime)
 
@@ -89,12 +91,12 @@ p
 ## Examining Education with Zips Data frame 
 Year, ZIP, No of crimes, No of schools in district, Mean Graduation Rate, Mean Dropput rate, Total graduates, total drop outs, 
 ```{r}
-setwd("~/Projects/Detroit Project/detroit-crime-education/data/clean/Education")
+#setwd("~/Projects/Detroit Project/detroit-crime-education/data/clean/Education")
 education <- read.csv("clean-education-with-zips.csv")
 colnames(education)
 ```
- The returned Column Names are:
  
+ The returned Column Names are:
  [1] "X"                "ENROLL_YEAR"      "SCHOOL_NAME"      "COHORT_GRAD_YEAR" "GRAD_YEAR"        "NUM_COHORT"      
  [7] "NUM_GRADUATES"    "NUM_DROPOUTS"     "GRAD_RATE"        "DROP_RATE"        "ZIP"              "LATITUDE"        
 [13] "LONGITUDE"
@@ -132,8 +134,23 @@ edu.enroll=aggregate(edu.enroll, by=list(edu.enroll$ENROLL_YEAR, edu.enroll$ZIP)
 edu.enroll
 head(edu.enroll)  #421 rows
 
-
 #Something weird in the last two rows :( Check out why the zip code is coming as 96480, must be some doubling of the data!
+colnames(edu.enroll) 
+filter=c("Group.1", "Group.2","NUM_SCHOOLS","NUM_COHORT","NUM_GRADUATES", "NUM_DROPOUTS")
+edu.enroll=edu.enroll[filter]
+colnames(edu.enroll)= c("ENROLL_YEAR", "ZIP","NUM_SCHOOLS","NUM_COHORT","NUM_GRADUATES", "NUM_DROPOUTS")
+edu.enroll$COHORT_GRAD_YEAR = edu.enroll$ENROLL_YEAR +4
+
+head(edu.enroll)
+edu.enroll
+
+#Add columns for dropout and graduation rates
+edu.enroll$GRAD_RATE = edu.enroll$NUM_GRADUATES/edu.enroll$NUM_COHORT
+edu.enroll$DROP_RATE = edu.enroll$NUM_DROPOUTS/edu.enroll$NUM_COHORT
+
+head(edu.enroll)
+edu.enroll
+
 
 #Having aggregated data for Graduation Year and Zip Code
 keep2= c("GRAD_YEAR","NUM_SCHOOLS","NUM_COHORT", "NUM_GRADUATES", "NUM_DROPOUTS", "ZIP")
@@ -141,14 +158,40 @@ edu.grad= education[keep2]
 edu.grad=aggregate(edu.grad, by=list(edu.grad$GRAD_YEAR, edu.grad$ZIP), FUN=sum)
 edu.grad #332 rows
 
-#Last Record is weird!!!!! Must check. TODO
+#Last Record is weird!!!!! Must check.
+colnames(edu.grad) 
+filter=c("Group.1", "Group.2","NUM_SCHOOLS","NUM_COHORT","NUM_GRADUATES", "NUM_DROPOUTS")
+edu.grad=edu.grad[filter]
+colnames(edu.grad)= c("GRAD_YEAR", "ZIP","NUM_SCHOOLS","NUM_COHORT","NUM_GRADUATES", "NUM_DROPOUTS")
+
+head(edu.grad)
+edu.grad
+
+#Add columns for dropout and graduation rates
+edu.grad$GRAD_RATE = edu.grad$NUM_GRADUATES/edu.grad$NUM_COHORT
+edu.grad$DROP_RATE = edu.grad$NUM_DROPOUTS/edu.grad$NUM_COHORT
+
+head(edu.grad)
+edu.grad
 
 ```
 
+## Write down the simplified zip level education data into a csv
+```{r}
+write.csv(edu.enroll,"zip_level_education_enroll.csv")
+write.csv(edu.grad,"zip_level_education_grad.csv")
+
+
+simple.crime
+write.csv(simple.crime,"zip_level_crime.csv")
+
+
+```
+
+
+
 ## Merging the two simple models for education and crime!
 ```{r}
-
-
 
 
 ```
