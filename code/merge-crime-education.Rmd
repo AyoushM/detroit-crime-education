@@ -40,7 +40,7 @@ IsViolent? Is Non-Violent? Is it white-collar? Is it Blue-collar? etc
 
 
 ## Creating simplified Crime model
-```{r pressure, echo=FALSE}
+```{r}
 keep = c("YEAR", "ZIP_CHAR")
 simple.crime=crime[keep]
 colnames(simple.crime)
@@ -58,6 +58,31 @@ head(simple.crime)
 summary(simple.crime)
 
 plot(simple.crime)
+
+#Let's see how crimes vary across the years
+plot(simple.crime$NUM_CRIMES ~simple.crime$YEAR)
+
+#Wouldn't it be better as a violin plot?
+library(ggplot2)
+
+#Change the input X variable (YEAR) to a factor from int
+simple.crime$YEAR = as.factor(simple.crime$YEAR)
+
+# Change violin plot line colors by groups
+p<-ggplot(simple.crime, aes(x=simple.crime$YEAR, y=simple.crime$NUM_CRIMES, color=simple.crime$YEAR)) +
+  geom_violin(trim=FALSE)
+p + stat_summary(fun.y=median, geom="point", size=2, color="red") + stat_summary(fun.y=mean, geom="point", shape=23, size=2)
+
+
+# Change box plot line colors by groups
+p<-ggplot(simple.crime, aes(x=simple.crime$YEAR, y=simple.crime$NUM_CRIMES, color=simple.crime$YEAR)) +  geom_boxplot()
+p
+
+
+#Re-order number of crimes per year , with zips
+
+
+
 ```
 
 
@@ -65,23 +90,23 @@ plot(simple.crime)
 Year, ZIP, No of crimes, No of schools in district, Mean Graduation Rate, Mean Dropput rate, Total graduates, total drop outs, 
 ```{r}
 setwd("~/Projects/Detroit Project/detroit-crime-education/data/clean/Education")
-education <- read.csv("Education_Data_wLoc.csv")
+education <- read.csv("clean-education-with-zips.csv")
 colnames(education)
 ```
-
- [1] "Location.Name"          "Rate.Year"              "Cohort.Graduation.Year" "Total.Cohort"          
- [5] "Total.Graduated"        "OffTrack.Other"         "Dropouts"               "Graduation.Rate"       
- [9] "Dropout.Rate"           "gradyear"               "enrollyear"             "School.Name"           
- [13] "ZIP.Code"               "Latitude"               "Longitude" 
+ The returned Column Names are:
+ 
+ [1] "X"                "ENROLL_YEAR"      "SCHOOL_NAME"      "COHORT_GRAD_YEAR" "GRAD_YEAR"        "NUM_COHORT"      
+ [7] "NUM_GRADUATES"    "NUM_DROPOUTS"     "GRAD_RATE"        "DROP_RATE"        "ZIP"              "LATITUDE"        
+[13] "LONGITUDE"
  
 
 Education Colnames to discard for merged model:
 ------------------------------------------
-Location.Name, Total.Cohort, Rate.Year
+
 
 Education Colnames to keep for merged model:
 ----------------------------------
-Cohort.Graduation.Year, Total.Cohort, Total.Graduated, OffTrack.Other, Dropouts, Graduation.Rate, Dropout.Rate, 
+GRAD_YEAR, COHORT_GRAD_YEAR, NUM_DROPOUTS, NUM_GRADUTES
 
 
 Education Colnames to add for merged model:
@@ -91,30 +116,40 @@ Number of Schools
 
 ## Creating simplified Education model
 ```{r}
-#keep = c("YEAR", "ZIP_CHAR")
-#simple.crime=crime[keep]
-#colnames(simple.crime)
 
-#simple.crime$NUM_CRIMES = 1
-#colnames(simple.crime)
-#head(simple.crime)
+colnames(education)
+education$NUM_SCHOOLS= 1
+colnames(education)
 
-#simple.crime=aggregate(simple.crime$NUM_CRIMES, by=list(simple.crime$YEAR, simple.crime$ZIP_CHAR), FUN=sum)
-#colnames(simple.crime)
+#Can remove individual school identifiers like school name, latitude and longitude
+#Need to look at Zip code level data per year
+education  #615 rows
 
-#colnames(simple.crime) = c("YEAR", "ZIP", "NUM_CRIMES")
+#Having aggregated data for Enroll Year and Zip Code
+keep1= c("ENROLL_YEAR", "COHORT_GRAD_YEAR","NUM_SCHOOLS","NUM_COHORT", "NUM_GRADUATES", "NUM_DROPOUTS", "ZIP")
+edu.enroll = education[keep1]
+edu.enroll=aggregate(edu.enroll, by=list(edu.enroll$ENROLL_YEAR, edu.enroll$ZIP), FUN=sum)
+edu.enroll
+head(edu.enroll)  #421 rows
 
-#head(simple.crime)
-#summary(simple.crime)
 
-#plot(simple.crime)
+#Something weird in the last two rows :( Check out why the zip code is coming as 96480, must be some doubling of the data!
+
+#Having aggregated data for Graduation Year and Zip Code
+keep2= c("GRAD_YEAR","NUM_SCHOOLS","NUM_COHORT", "NUM_GRADUATES", "NUM_DROPOUTS", "ZIP")
+edu.grad= education[keep2]
+edu.grad=aggregate(edu.grad, by=list(edu.grad$GRAD_YEAR, edu.grad$ZIP), FUN=sum)
+edu.grad #332 rows
+
+#Last Record is weird!!!!! Must check. TODO
+
 ```
-
-Problem: 
-Inflated datasets!!!!
 
 ## Merging the two simple models for education and crime!
 ```{r}
+
+
+
 
 ```
 
