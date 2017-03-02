@@ -9,12 +9,13 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+The aim is to cut down the Rate-Year column,and have only one entry per year for a school.
 
 
 ## Examining Education with Zips Data frame 
 Year, ZIP, No of crimes, No of schools in district, Mean Graduation Rate, Mean Dropput rate, Total graduates, total drop outs, 
 ```{r}
-setwd("~/Projects/Detroit Project/detroit-crime-education/data/clean/Education")
+#setwd("~/Projects/Detroit Project/detroit-crime-education/data/clean/Education")
 education <- read.csv("Education_Data_wLoc.csv")
 colnames(education)
 
@@ -59,23 +60,37 @@ head(small.education)
 clean.education=aggregate(small.education, by=list(small.education$enrollyear, small.education$ZIP.Code, small.education$School.Name), FUN=max)
 head(clean.education)
 
-#Re-order columns
-#clean.education = clean.education["enrollyear"," "," "]
+#Re-order columns, and remove"Group.1,2,3" columns added by aggregate
+keep =c("enrollyear", "School.Name", "Cohort.Graduation.Year", "gradyear", "Total.Cohort", "Total.Graduated", "Dropouts", "ZIP.Code", "Latitude", "Longitude") 
+clean.education= clean.education[keep]
 
 #rename columns
+colnames(clean.education) =c("ENROLL_YEAR","SCHOOL_NAME", "COHORT_GRAD_YEAR", "GRAD_YEAR","NUM_COHORT","NUM_GRADUATES", "NUM_DROPOUTS","ZIP","LATITUDE","LONGITUDE")
+
+#Add Graduation Rate & Dropout Rate
+clean.education$GRAD_RATE = clean.education$NUM_GRADUATES/clean.education$NUM.COHORT
+clean.education$DROP_RATE = clean.education$NUM_DROPOUTS/clean.education$NUM.COHORT
+
+#Re-order columns, and move newly added columns before ZIP & Lat, Long
+keep =c( "ENROLL_YEAR", "SCHOOL_NAME", "COHORT_GRAD_YEAR", "GRAD_YEAR","NUM_COHORT","NUM_GRADUATES","NUM_DROPOUTS","GRAD_RATE"        ,"DROP_RATE","ZIP" ,"LATITUDE","LONGITUDE") 
+clean.education= clean.education[keep]
 colnames(clean.education)
 
+```
+
+
+We have now reduced to 615 rows only, and have recalculated the graduation and drop out rates per school per enrollment year.
+All variables are int or double variables. No Factors!
+
+```{r}
+
+#Verify one last time
+dim(clean.education)
+head(clean.education)
+
+
 #Save to file
-
-```
-
-
-```{r}
-
-```
-
-
-```{r}
+write.csv(clean.education, "clean-education-with-zips.csv")
 
 ```
 
