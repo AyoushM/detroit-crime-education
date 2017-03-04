@@ -9,9 +9,6 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-This file merges two data frames
-
-
 ## Examining Crime with Zips Data frame 
 Year, ZIP, No of crimes, No of schools in district, Mean Graduation Rate, Mean Dropput rate, Total graduates, total drop outs
 ```{r}
@@ -195,12 +192,17 @@ write.csv(simple.crime,"zip_level_crime.csv")
 
 ## Merging the two simple models for education and crime!
 ```{r}
+simple.crime$YEAR <- as.numeric(as.character(simple.crime$YEAR))
+edu_crime <- merge(edu.grad, simple.crime,by.x=c("GRAD_YEAR","ZIP"),by.y=c("YEAR","ZIP"),all.x = TRUE)
+simple.crime <- data.table(simple.crime)
+edu_crime$NUM_CRIMES[is.na(edu_crime$NUM_CRIMES)] <- 0
+edu_crime
 
-
+write.csv(edu_crime,"edu-crime-merged.csv")
 ```
 
 
 ## Machine Learning! Regression Models
 ```{r}
-
+#TBD
 ```
