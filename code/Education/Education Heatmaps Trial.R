@@ -41,7 +41,7 @@ names(school.frequency) = c("Longitude", "Latitude", "Freq")
 school.frequency$Longitude = as.numeric(as.character(school.frequency$Longitude))
 school.frequency$Latitude = as.numeric(as.character(school.frequency$Latitude))
 
-# Strretmap Plot
+# Streetmap Plot
 ggmap(Map.Wayne.County) + geom_tile(data = school.frequency,
                                           aes(x = Longitude, y = Latitude, alpha = Freq),
                                           fill = 'blue') + geom_point(data = School.Data, show.legend = TRUE, aes(x = Longitude, y = Latitude), col = 'red')
