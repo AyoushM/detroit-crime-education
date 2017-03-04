@@ -9,6 +9,9 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+This file merges two data frames
+
+
 ## Examining Crime with Zips Data frame 
 Year, ZIP, No of crimes, No of schools in district, Mean Graduation Rate, Mean Dropput rate, Total graduates, total drop outs
 ```{r}
