@@ -267,3 +267,14 @@ crmodel <- lm(VIOLENT~NUM_COHORT+DROP_RATE+ZIP)
 
 
 ```
+
+```{r}
+setwd("~/Projects/Detroit Project/detroit-crime-education/data/clean")
+educate <- read.csv("zip_level_education_grad.csv")
+colnames(educate)
+```
+
+```{r}
+educate <- data.table(educate)
+educate[ZIP %in% c(48205, 48219, 48224, 48227, 48228, 48235),]
+```
