@@ -1,0 +1,110 @@
+---
+title: "Time Series"
+author: "Shrawan Sher"
+date: "3/5/2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+library(ggplot2)
+library(lubridate)
+library(reshape) 
+library(data.table)
+library(astsa)
+library(forecast)
+
+#Fetching the crime data 
+crime <- read.csv("crimewithzips.csv")
+colnames(crime)
+
+#Selecting just month and year columns
+crimebytime <- crime[,c(17:18)]
+
+#Adding a dummy column for crime count
+crimebytime$DUMMY <- 1
+head(crimebytime)
+```
+
+
+```{r}
+#Casting the data across Year and month 
+tseries <- dcast(crimebytime, YEAR~MONTH,fun.aggregate = sum,value.var = "DUMMY")
+
+#Converting the cast into a vector
+tsr <-as.vector(t(tseries[,2:13]))
+
+#Removing crime data for 2017
+tsr <- tsr[1:96]
+
+#Time series till Jun 2016
+ts2017 <- tsr[1:90]
+ts2017 <- ts(ts2017,frequency = 12, start=c(2009,1))
+
+#Creating a time series till Dec 2016
+times <- ts(tsr,frequency=12,start=c(2009,1))
+
+plot(times,main="Number of crimes reported 2009-2016" ,ylab="Number of Crimes",xlab="Month-Year")
+```
+
+
+
+
+#Decomposition of the time series
+comp <- decompose(times)
+decomp <- stl(times,s.window = "periodic")
+plot(comp)
+plot(decomp)
+
+#Remove the seasonality from the time series
+deseasonalcrime <- seasadj(decomp)
+plot(deseasonalcrime)
+
+
+#Stationarity
+# formal statistical test for stationarity
+library(tseries)
+adf.test(times, alternative = "stationary")
+Acf(times,main='')
+Pacf(times,main='')
+#Spikes at 1, 13 for pacf 
+auto.arima(times, seasonal=FALSE)
+
+
+#Can we trust this model? We can start by examining ACF and PACF plots for model residuals. 
+#If model order parameters and structure are correctly specified, 
+#we would expect no significant autocorrelations present. 
+
+fit<-auto.arima(times, seasonal=FALSE)
+tsdisplay(residuals(fit), lag.max=45, main='(1,1,1) Model Residuals')
+
+#There is a clear pattern present in ACF/PACF and model residuals plots repeating at lag 12. 
+#This suggests that our model may be better off with a different specification, 
+#such as p = 12 or q = 12. 
+
+fit2 = arima(times, order=c(12,1,1))
+
+fit2
+
+tsdisplay(residuals(fit2), lag.max=15, main='Seasonal Model Residuals')
+
+
+#Forecasting
+
+fcast <- forecast(fit2, h=6)
+plot(fcast)
+library(zoo)
+#pd<-funggcast(y,fcast)
+ggplot()
+
+#When are crimes most likely
+crimecat <- crime[,c(6,17:18)]
+
+
+
+#Where do crimes occur
+
+
+#Machine Learning
