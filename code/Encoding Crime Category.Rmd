@@ -82,7 +82,7 @@ crime$NUM_VIOLENT <- ifelse(crime$CATEGORY %in% c("HOMICIDE","NEGLIGENT HOMICIDE
 
 
 # Property
-crime$NUM_PROPERTY <- ifelse(crime$CATEGORY %in% c("ARSON","LARCENY", "DAMAGE TO PROPERTY", "STOLEN PROPERTY", "OTHER BURGLARY", "ROBBERY", "STOLEN VEHICLE", "BURGLARY"), 1, 0)
+crime$NUM_PROPERTY_RELATED <- ifelse(crime$CATEGORY %in% c("ARSON","LARCENY", "DAMAGE TO PROPERTY", "STOLEN PROPERTY", "OTHER BURGLARY", "ROBBERY", "STOLEN VEHICLE", "BURGLARY"), 1, 0)
 
 
 # Youth-Related Crimes
@@ -99,7 +99,7 @@ colnames(crime)
 
 ```
 ## Save the Incident Level Data
-1211903 rows, 35 columns
+1211903 rows, 36 columns
 ```{r}
 head(crime)
 colnames(crime)
@@ -112,7 +112,7 @@ colnames(crime)
 
 ## Sanity Check Before Aggregating to Per Year, Per Zip data
 
-579 rows, 22 columns
+579 rows, 23 columns
 ```{r}
 head(crime)
 colnames(crime)
