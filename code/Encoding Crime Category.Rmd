@@ -24,6 +24,12 @@ drops=c("X","CASEID", "ADDRESS", "SCA", "CENSUSTRACT")
 
 crime = crime[, !names(crime) %in% drops]
 colnames(crime)
+
+crime[crime$CATEGORY=="ESCAPE",] #Fugitive
+crime[crime$CATEGORY=="ENVIRONMENT",] #Runaway (Teenagers?)
+crime[crime$CATEGORY=="KIDNAPING",]
+crime[crime$CATEGORY=="OBSTRUCTING JUDICIARY",] # Parole Violation
+crime[crime$CATEGORY=="OBSTRUCTING THE POLICE",] #Resisting Arrest
 ```
 
 
@@ -52,6 +58,7 @@ NUM_CRIMES column must be added as well
 ```{r}
 crime$NUM_CRIMES = 1
 
+# Top 15 crimes in Wayne County
 crime$NUM_ASSAULT <- ifelse(crime$CATEGORY == "ASSAULT", 1, 0)
 crime$NUM_LARCENY <- ifelse(crime$CATEGORY == "LARCENY", 1, 0)
 crime$NUM_BURGLARY <- ifelse(crime$CATEGORY == "BURGLARY", 1, 0)
@@ -70,22 +77,43 @@ crime$NUM_ESCAPE <- ifelse(crime$CATEGORY == "ESCAPE", 1, 0)
 crime$NUM_OBSTRUCT <- ifelse(crime$CATEGORY == "OBSTRUCTING JUDICIARY", 1, 0)
 crime$NUM_CONDUCT <- ifelse(crime$CATEGORY == "DISORDERLY CONDUCT", 1, 0)
 
+# Violent Crimes
+crime$NUM_VIOLENT <- ifelse(crime$CATEGORY %in% c("HOMICIDE","NEGLIGENT HOMICIDE", "JUSTIFIABLE HOMICIDE", "MURDER/INFORMATION", "SEX OFFENSES", "AGGRAVATED ASSAULT", "ASSAULT", "KIDNAPING"), 1, 0)
+
+
+# Property
+crime$NUM_PROPERTY <- ifelse(crime$CATEGORY %in% c("ARSON","LARCENY", "DAMAGE TO PROPERTY", "STOLEN PROPERTY", "OTHER BURGLARY", "ROBBERY", "STOLEN VEHICLE", "BURGLARY"), 1, 0)
+
+
+# Youth-Related Crimes
+crime$NUM_YOUTH <- ifelse(crime$CATEGORY %in% c("LARCENY","DRUNKENNESS", "LIQUOR", "OUIL", "DAMAGE TO PROPERTY", "STOLEN PROPERTY", "OBSCENITY", "DISORDERLY CONDUCT","DANGEROUS DRUGS", "ASSAULT", "VAGRANCY (OTHER)","RUNAWAY","OBSTRUCTING THE POLICE", "TRAFFIC OFFENSES", "TRAFFIC", "ENVIRONMENT"), 1, 0)
+
+# White Collar Crime
+crime$NUM_WHITECOLLAR <- ifelse(crime$CATEGORY %in% c("FORGERY","FRAUD", "BRIBERY", "EMBEZZLEMENT", "EXTORTION"), 1, 0)
+
+# Substance Abuse Related Crime
+crime$NUM_SUBSTANCE <- ifelse(crime$CATEGORY %in% c("DRUNKENNESS", "LIQUOR", "OUIL","DANGEROUS DRUGS"), 1, 0)
+
+
+
+
 ```
-## Aggregate the data
-
-```{r}
-head(crime)
-
-
-```
-
-
-
-## Sanity Check
-
+## Save the Incident Level Data
+1211903 rows, 35 columns
 ```{r}
 head(crime)
 colnames(crime)
+dim(crime)
+write.csv(crime, "encodedcrimeincidents.csv")
+```
+
+
+
+## Sanity Check Before Aggregating to Per Year, Per Zip data
+```{r}
+head(crime)
+colnames(crime)
+#Drop any columns that cannot be grouped for Yearly  Zip data
 drops = c("ROWNUM", "CATEGORY", "OFFENSEDESCRIPTION", "INCIDENTDATE","HOUR","PRECINCT","COUNCIL","NEIGHBORHOOD","LON","LAT", "LOCATION", "MONTH", "FINALZIP")
 backup = crime[ , ! names(crime) %in% drops]
 
@@ -103,8 +131,7 @@ backup
 ```
 
 
-## Plotting Data
-
+## Plotting Data (To be Done Later)
 ```{r}
 library(ggplot2)
 #ggplot(backup, aes(YEAR,value, col=variable)) + 
@@ -114,8 +141,8 @@ library(ggplot2)
 
 
 
-## Saving the data
+## Saving the  Aggregate data
 
 ```{r}
-write.csv(backup, "encodedcrimezips.csv")
+write.csv(backup, "zip-level-encoded-crime.csv")
 ```
