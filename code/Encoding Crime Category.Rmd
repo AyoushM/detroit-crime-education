@@ -25,10 +25,10 @@ drops=c("X","CASEID", "ADDRESS", "SCA", "CENSUSTRACT")
 crime = crime[, !names(crime) %in% drops]
 colnames(crime)
 
-crime[crime$CATEGORY=="ESCAPE",] #Fugitive
-crime[crime$CATEGORY=="ENVIRONMENT",] #Runaway (Teenagers?)
-crime[crime$CATEGORY=="KIDNAPING",]
-crime[crime$CATEGORY=="OBSTRUCTING JUDICIARY",] # Parole Violation
+#crime[crime$CATEGORY=="ESCAPE",] #Fugitive
+#crime[crime$CATEGORY=="ENVIRONMENT",] #Runaway (Teenagers?)
+#crime[crime$CATEGORY=="KIDNAPING",]
+#crime[crime$CATEGORY=="OBSTRUCTING JUDICIARY",] # Parole Violation
 crime[crime$CATEGORY=="OBSTRUCTING THE POLICE",] #Resisting Arrest
 ```
 
@@ -95,7 +95,7 @@ crime$NUM_WHITECOLLAR <- ifelse(crime$CATEGORY %in% c("FORGERY","FRAUD", "BRIBER
 crime$NUM_SUBSTANCE <- ifelse(crime$CATEGORY %in% c("DRUNKENNESS", "LIQUOR", "OUIL","DANGEROUS DRUGS"), 1, 0)
 
 
-
+colnames(crime)
 
 ```
 ## Save the Incident Level Data
@@ -105,11 +105,14 @@ head(crime)
 colnames(crime)
 dim(crime)
 write.csv(crime, "encodedcrimeincidents.csv")
+colnames(crime)
 ```
 
 
 
 ## Sanity Check Before Aggregating to Per Year, Per Zip data
+
+579 rows, 22 columns
 ```{r}
 head(crime)
 colnames(crime)
@@ -117,6 +120,7 @@ colnames(crime)
 drops = c("ROWNUM", "CATEGORY", "OFFENSEDESCRIPTION", "INCIDENTDATE","HOUR","PRECINCT","COUNCIL","NEIGHBORHOOD","LON","LAT", "LOCATION", "MONTH", "FINALZIP")
 backup = crime[ , ! names(crime) %in% drops]
 
+#22 columns
 colnames(backup)
 head(backup)
 backup = aggregate(backup, by=list(backup$YEAR, backup$ZIP_CHAR), FUN=sum)
@@ -124,16 +128,17 @@ backup = aggregate(backup, by=list(backup$YEAR, backup$ZIP_CHAR), FUN=sum)
 head(backup)
 backup$YEAR <- NULL
 backup$ZIP_CHAR <-NULL
-library(data.table)
+#library(data.table)
 setnames(backup, old = c('Group.1','Group.2'), new = c('YEAR','ZIP_CHAR'))
 backup
 
+dim(backup)
 ```
 
 
 ## Plotting Data (To be Done Later)
 ```{r}
-library(ggplot2)
+#library(ggplot2)
 #ggplot(backup, aes(YEAR,value, col=variable)) + 
  # geom_point() + 
   #stat_smooth() 
@@ -142,7 +147,6 @@ library(ggplot2)
 
 
 ## Saving the  Aggregate data
-
 ```{r}
 write.csv(backup, "zip-level-encoded-crime.csv")
 ```
