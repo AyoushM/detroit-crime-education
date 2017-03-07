@@ -17,7 +17,6 @@ crime = read.csv("zip-level-encoded-crime.csv")
 
 ## Plotting Trends in Crime across the Years (Time)
 You can also embed plots, for example:
-
 ```{r}
 crime
 
@@ -29,15 +28,14 @@ drops= c("X", "YEAR","ZIP_CHAR")
 yearbackup = yearbackup[, !names(yearbackup) %in% drops]
 yearbackup
 
+colnames(yearbackup)
+library(data.table)
 setnames(yearbackup, old = c('Group.1'), new = c('YEAR'))
 yearbackup
-
-
 
 ```
 
 ## Plotting Trends in Crime across ZIPS (Spatial)
-
 ```{r}
 crime
 
@@ -69,6 +67,7 @@ ggplot(d, aes(year, value)) +
   geom_point() + 
   stat_smooth() +
   facet_wrap(~variable)
+
 ```
 ##Analyze Zip Level Data
 Most types of crimes seem to be correlated with high corr values!!!
@@ -91,8 +90,8 @@ http://www.sthda.com/english/wiki/cluster-analysis-in-r-unsupervised-machine-lea
 
 ```{r}
 # Install factoextra and cluster
-install.packages("factoextra")
-install.packages("cluster")
+#install.packages("factoextra")
+#install.packages("cluster")
 
 library(factoextra)
 library(cluster)
@@ -100,7 +99,13 @@ library(cluster)
 
 ## Let the cool visualization of distance between zips begin!
 ```{r}
+
+scalezip = zipshort
+
 scalezip$ZIP = zipshort$ZIP
+rownames(scalezip) = scalezip$ZIP
+rownames(zipshort) = zipshort$ZIP
+
 scalezip$NUM_SUBSTANCE = scale(zipshort$NUM_SUBSTANCE) #Don't scale ZIP
 scalezip$NUM_WHITECOLLAR = scale(zipshort$NUM_WHITECOLLAR)
 scalezip$NUM_VIOLENT = scale(zipshort$NUM_VIOLENT)
@@ -112,11 +117,10 @@ rownames(scalezip) = scalezip[,"ZIP"]
 
 scalezip
 
-res.dist = get_dist(zipshort, stand =TRUE, method="pearson")
+res.dist = get_dist(scalezip, stand =TRUE, method="pearson")
 fviz_dist(res.dist, gradient = list(low = "#00AFBB", mid = "white", high = "#FC4E07"))
 
 #res.dist
-
 res.dist2 = get_dist(scalezip, stand =TRUE, method="euclidean")
 fviz_dist(res.dist2, gradient = list(low = "#00AFBB", mid = "white", high = "#FC4E07"))
 
@@ -147,12 +151,50 @@ fviz_cluster(pam.res)
 
 ```{r}
 set.seed(20)
-irisCluster <- kmeans(zipshort[, 2:5], 5, nstart = 20)
-irisCluster
-```
-```{r}
-zips <- zipshort$ZIP
-irisCluster$cluster==1
-zips[irisCluster$cluster==1]
+zipCluster <- kmeans(zipshort[, 2:5], 5, nstart = 20)
+zipCluster
 
 ```
+```{r}
+
+
+zips <- zipshort$ZIP
+zipCluster$cluster
+
+set1 = zips[zipCluster$cluster==1]
+set2 = zips[zipCluster$cluster==2]
+set3 = zips[zipCluster$cluster==3]
+set4 = zips[zipCluster$cluster==4]
+set5 = zips[zipCluster$cluster==5]
+
+
+zipshort$CLUSTER = 1
+zipshort$CLUSTER = ifelse(zipshort$ZIP %in% set1, 1,  
+                          ifelse(zipshort$ZIP %in% set2, 2,  
+                                 ifelse(zipshort$ZIP %in% set3, 3,  
+                                        ifelse(zipshort$ZIP %in% set4, 4, 5) ) ) )
+zipshort
+
+zipshort$CLUSTER = ifelse(zipshort$CLUSTER ==1, "EXTREME",  
+                          ifelse(zipshort$CLUSTER ==2, "HIGH",  
+                                 ifelse(zipshort$CLUSTER ==3, "SAFE",  
+                                        ifelse(zipshort$CLUSTER ==4, "MEDIUM", "LOW") ) ) )
+
+zipshort$CLUSTER = as.factor(zipshort$CLUSTER)
+levels(zipshort$CLUSTER)
+zipshort$CLUSTER = factor(zipshort$CLUSTER, levels = c("SAFE", "LOW", "MEDIUM","HIGH","EXTREME"))
+
+levels(zipshort$CLUSTER)
+zipshort
+
+```
+
+##Save Files for Further Analysis
+```{r}
+write.csv(zipshort, "zip-level-clusters.csv")
+write.csv(yearbackup, "year-level-zrimes.csv")
+```
+
+
+
+
