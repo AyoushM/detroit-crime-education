@@ -45,19 +45,19 @@ head(crimes.detroit)
 #Factor
 colnames(crimes.detroit)
 crimes.detroit$robberies<- as.numeric(gsub(",","", as.character(crimes.detroit$robberies)))
-crimes.detroit$arson<- as.numeric(gsub(",","", (as.character(crimes.detroit$arson)))
+crimes.detroit$arson<- as.numeric(gsub(",","", as.character(crimes.detroit$arson)))
 
-crimes.detroit$assaults<- as.numeric(gsub(",","", (as.character(crimes.detroit$assaults)))
-crimes.detroit$assaults.100K<- as.numeric(gsub(",","", (as.character(crimes.detroit$assaults.100K)))
+crimes.detroit$assaults<- as.numeric(gsub ("," ,"", as.character(crimes.detroit$assaults)))
+crimes.detroit$assaults.100K<- as.numeric(gsub(",","",as.character(crimes.detroit$assaults.100K)))
 
-crimes.detroit$burglaries<- as.numeric(gsub(",","", (as.character(crimes.detroit$burglaries)))
-crimes.detroit$burglaries.100K<- as.numeric(gsub(",","", (as.character(crimes.detroit$burglaries.100K)))
+crimes.detroit$burglaries<- as.numeric(gsub(",","", as.character(crimes.detroit$burglaries)))
+crimes.detroit$burglaries.100K<- as.numeric(gsub(",","", as.character(crimes.detroit$burglaries.100K)))
 
-crimes.detroit$thefts<- as.numeric(gsub(",","", (as.character(crimes.detroit$thefts)))
-crimes.detroit$thefts.100K<- as.numeric(gsub(",","", (as.character(crimes.detroit$thefts.100K)))
+crimes.detroit$thefts<- as.numeric(gsub(",","", as.character(crimes.detroit$thefts)))
+crimes.detroit$thefts.100K<- as.numeric(gsub(",","", as.character(crimes.detroit$thefts.100K)))
 
-crimes.detroit$auto.thefts<- as.numeric(gsub(",","", (as.character(crimes.detroit$auto.thefts)))
-crimes.detroit$auto.thefts.100K<- as.numeric(gsub(",","", (as.character(crimes.detroit$auto.thefts.100K)))
+crimes.detroit$auto.thefts<- as.numeric(gsub(",","", as.character(crimes.detroit$auto.thefts)))
+crimes.detroit$auto.thefts.100K<- as.numeric(gsub(",","",as.character(crimes.detroit$auto.thefts.100K)))
 
 
 head(crimes.detroit)
@@ -147,6 +147,7 @@ crimes.detroit.100K$assaults.100K=as.numeric(gsub(",", "", crimes.detroit.100K$a
 as.numeric(as.factor(crimes.detroit.100K$assaults.100K))
 qplot(crimes.detroit.100K$assaults.100K,
       geom="histogram",
+      binwidth=50,
       main = "Histogram for Assaults in Detroit", 
       xlab = "Assaults per 100,000 individuals",        
       col=I("blue"),
@@ -160,6 +161,7 @@ qplot(crimes.detroit.100K$assaults.100K,
 crimes.detroit.100K$burglaries.100K=as.numeric(gsub(",", "", crimes.detroit.100K$burglaries.100K))
 qplot(crimes.detroit.100K$burglaries.100K,
       geom="histogram",
+      binwidth=50,
       main = "Histogram for Burglaries in Detroit", 
       xlab = "Burglaries per 100,000 individuals",  
       col=I("blue"),

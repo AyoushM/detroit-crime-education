@@ -191,8 +191,15 @@ zipshort
 
 ##Save Files for Further Analysis
 ```{r}
-write.csv(zipshort, "zip-level-clusters.csv")
-write.csv(yearbackup, "year-level-zrimes.csv")
+write.csv(zipshort, "zip-level-crime-clusters.csv")
+write.csv(yearbackup, "year-level-crimes.csv")
+```
+
+Visualizing R!
+https://cran.r-project.org/web/packages/broom/vignettes/kmeans.html
+
+```{r}
+
 ```
 
 

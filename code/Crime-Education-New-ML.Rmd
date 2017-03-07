@@ -1,0 +1,98 @@
+---
+title: "Crime-Education-New-ML-Model"
+author: "vaibhavi"
+date: "March 6, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load Zip Level crime Data (With Cluster tags) & Zip+Year Level Education 
+```{r}
+setwd("~/Projects/Detroit Project/detroit-crime-education/data/clean")
+crimecluster = read.csv("zip-level-crime-clusters.csv")
+edu_grad= read.csv("zip_level_education_grad.csv")
+crime=read.csv("zip-level-encoded-crime.csv")
+merged_data= read.csv("edu-crime-merged.csv")
+```
+
+## Attach Cluster Tags based on Location??
+```{r}
+
+crimecluster
+crime
+edu_grad
+
+
+```
+
+## Create Next Year's Crime Data
+```{r}
+crime$PREV_YEAR = crime$YEAR+1
+crime
+
+
+crime[,"X"] <-NULL
+edu_grad[,"X"] <-NULL
+```
+
+
+## New Model 
+```{r}
+head(merged_data)
+head(crime)
+```
+
+## New Crimes
+```{r}
+crime
+merged_data
+backup = merged_data
+backup
+
+merged_data = merge(merged_data, crime,by.x=c("GRAD_YEAR","ZIP"),by.y=c("PREV_YEAR","ZIP_CHAR"))
+
+backup = merged_data
+backup
+
+colnames(merged_data)
+merged_data$X.X <-NULL
+merged_data$X.y <-NULL
+merged_data$NUM_CRIMES.x <-NULL
+
+colnames(merged_data)
+keeps = c("ZIP", "GRAD_YEAR", "NUM_SCHOOLS","NUM_COHORT","NUM_DROPOUTS", "NUM_GRADUATES", "NUM_CRIMES.y", "NUM_VIOLENT.y","NUM_YOUTH.y", "NUM_SUBSTANCE.y", "NUM_PROPERTY_RELATED.y", "NUM_WHITECOLLAR.y")
+
+colnames(merged_data)
+merged_data
+merged_data = merged_data[keeps]
+colnames(merged_data)
+
+#253 Rows
+library(data.table)
+setnames(merged_data, old = c("NUM_CRIMES.y", "NUM_VIOLENT.y","NUM_YOUTH.y", "NUM_SUBSTANCE.y", "NUM_PROPERTY_RELATED.y", "NUM_WHITECOLLAR.y"), new = c("NUM_CRIMES", "NUM_VIOLENT","NUM_YOUTH", "NUM_SUBSTANCE", "NUM_PROPERTY_RELATED", "NUM_WHITECOLLAR"))
+merged_data 
+
+
+plot(merged_data)
+
+```
+##Add Safety Level Prediction to Each ZIP
+```{r}
+
+```
+
+
+
+## Change in Education Levels Calculate over Year (Change in Education)
+
+```{r}
+
+```
+
+
+## Change in Education as a result of the 
+
+

@@ -202,23 +202,39 @@ edu_crime
 write.csv(edu_crime,"edu-crime-merged.csv")
 ```
 
+```{r}
+setwd("~/Projects/Detroit Project/detroit-crime-education/data/clean")
+simple.crime=read.csv("zip_level_crime.csv")
+edu_crime=read.csv("edu-crime-merged.csv")
+```
+
 
 ## Machine Learning! Regression Models
 ```{r}
+
 edu_crime <- data.table(edu_crime)
 cor(edu_crime$NUM_CRIMES,edu_crime$DROP_RATE)
 #Converting Zip and Year to Factors
 edu_crime$ZIP <- as.factor(edu_crime$ZIP)
 edu_crime$GRAD_YEAR <- as.factor(edu_crime$GRAD_YEAR)
 
+edu_crime
+
 #Creating a basic Linear Regression Model 
 library(MASS)
-crmodel <- lm( NUM_CRIMES~GRAD_YEAR+ZIP+COHORT_SIZE,data=edu_crime)
+crmodel <- lm( NUM_CRIMES~GRAD_YEAR+ZIP+NUM_COHORT,data=edu_crime)
 summary(crmodel)
 
+plot(crmodel)
+abline(crmodel)
 #Model without zips
 crmodel2 <- lm(NUM_CRIMES ~ DROP_RATE,data=edu_crime)
 summary(crmodel2)
+
+
+ggplot(data = edu_crime,aes(x=DROP_RATE,y=NUM_CRIMES))+
+  geom_point()
+
 
 ggplot(data = edu_crime,aes(x=GRAD_RATE,y=NUM_CRIMES))+
   geom_point()
@@ -231,39 +247,16 @@ summary(step)
 
 ```
 ```{r}
-#Adding violent category
-crime <- data.table(crime)
-crime.cat <- crime[,c("CATEGORY","YEAR","ZIP_CHAR")]
-crime.cat$VIOLENT <- 0
-crime.cat[CATEGORY %in% c("ASSAULT","MURDER/INFORMATION","AGGRAVATED ASSAULT","HOMICIDE","SEX OFFENSES","ROBBERY")]$VIOLENT <- 1
-crime.cat$NUM_CRIMES <- 1
-crime.cat$CATEGORY <- NULL
-
-simple.crime=aggregate(crime.cat,by=list(crime.cat$YEAR, crime.cat$ZIP_CHAR), FUN=sum)
-
-drops = c("YEAR","ZIP_CHAR")
-simple.crime <- simple.crime[,!names(simple.crime) %in% drops]
-colnames(simple.crime) = c("YEAR", "ZIP", "VIOLENT","NUM_CRIMES")
-
-edu_crime <- merge(edu.grad, simple.crime,by.x=c("GRAD_YEAR","ZIP"),by.y=c("YEAR","ZIP"),all.x = TRUE)
-
-edu_crime$NUM_CRIMES[is.na(edu_crime$NUM_CRIMES)] <- 0
-edu_crime$VIOLENT[is.na(ed_crime$VIOLENT)] <- 0
+# TO DO: Add Better Models
 
 edu_crime <- data.table(edu_crime)
 edu_crime[order(edu_crime$ZIP, edu_crime$GRAD_YEAR),]
 edu_crime$DELTADROP <- 0
 edu_crime$DELTACRIME <- 0
+
 for(i in 2:nrow(edu_crime)){
   edu_crime[i,"DELTADROP"] <- (edu_crime[i,"DROP_RATE"]-edu_crime[i-1,"DROP_RATE"])/edu_crime[i,"DROP_RATE"]
 }
-
-educast <- dcast(edu_crime, GRAD_YEAR~ZIP,value.var = "DROP_RATE")
-
-
-edu_crime2009 <- edu_crime[GRAD_YEAR==2009]
-plot(edu_crime2009$NUM_CRIMES, edu_crime2009$DROP_RATE)
-crmodel <- lm(VIOLENT~NUM_COHORT+DROP_RATE+ZIP)
 
 
 ```
