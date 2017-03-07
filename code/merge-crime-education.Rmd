@@ -220,6 +220,8 @@ edu_crime$GRAD_YEAR <- as.factor(edu_crime$GRAD_YEAR)
 
 edu_crime
 
+levels(edu_crime$ZIP)
+
 #Creating a basic Linear Regression Model 
 library(MASS)
 crmodel <- lm( NUM_CRIMES~GRAD_YEAR+ZIP+NUM_COHORT,data=edu_crime)
@@ -227,6 +229,7 @@ summary(crmodel)
 
 plot(crmodel)
 abline(crmodel)
+
 #Model without zips
 crmodel2 <- lm(NUM_CRIMES ~ DROP_RATE,data=edu_crime)
 summary(crmodel2)

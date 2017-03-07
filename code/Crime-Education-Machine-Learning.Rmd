@@ -83,6 +83,7 @@ plot(zipshort)
 
 cor(zipshort$NUM_SUBSTANCE, zipshort$NUM_WHITECOLLAR)
 
+The
 ```
 
 ##Cluster Analysis
@@ -167,6 +168,7 @@ set3 = zips[zipCluster$cluster==3]
 set4 = zips[zipCluster$cluster==4]
 set5 = zips[zipCluster$cluster==5]
 
+set1
 
 zipshort$CLUSTER = 1
 zipshort$CLUSTER = ifelse(zipshort$ZIP %in% set1, 1,  
@@ -195,13 +197,56 @@ write.csv(zipshort, "zip-level-crime-clusters.csv")
 write.csv(yearbackup, "year-level-crimes.csv")
 ```
 
+
+
+##Using GGPLOT ot Visualize Cluster
+```{r}
+head(zipshort)
+#Already cluster is a factor, no need to convert
+#zipshort$cLUSTER <- as.factor(zipshort$cLUSTER)
+ggplot(data=zipshort, aes(NUM_WHITECOLLAR, NUM_VIOLENT, color = CLUSTER)) + geom_point()
+
+ggplot(data=zipshort, aes(NUM_PROPERTY_RELATED, NUM_SUBSTANCE, color = CLUSTER)) + geom_point()
+
+
+```
+
 Visualizing R!
 https://cran.r-project.org/web/packages/broom/vignettes/kmeans.html
 
 ```{r}
+set.seed(2014)
+points <-zipshort %>% group_by(CLUSTER) %>%
+    do(data.frame(NUM_WHITECOLLAR=rnorm(.$size[1], .$NUM_WHITECOLLAR[1]),
+                  x2=rnorm(.$size[1], .$x2[1])))
+
+library(ggplot2)
+ggplot(points, aes(x1, x2, color=cluster)) + geom_point()
+```
+
+#Doing PCA & K-Means (NOT DONE)
+```{r}
+zipshort
+# log transform 
+log.zipshort <- log(zipshort[, 2:5])
+zipcodes <- zipshort$ZIP
+clusters = zipshort$CLUSTER 
+
+# apply PCA - scale. = TRUE is highly 
+# advisable, but default is FALSE. 
+
+
+zip.pca <- prcomp(log.zipshort,
+                 center = TRUE,
+                 scale. = TRUE) 
+
 
 ```
 
 
 
+```{r}
 
+
+
+```
