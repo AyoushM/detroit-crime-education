@@ -40,6 +40,8 @@ school.location$cleaned = school.location$BuildingName
 # Merging
 school.data = merge(schoolnames, school.location, by = "cleaned", all.x = TRUE)
 
+# 20 rows of missing data were filled in manually using maps and MS Excel
+
 # Restructuring the data
 backup = school.data
 backup = backup[, -c(2,4)]
