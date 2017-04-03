@@ -1,0 +1,252 @@
+---
+title: "Models with Machine Learning"
+author: "vaibhavi"
+date: "March 5, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Plots of crime trends and machine learning models  
+```{r}
+setwd("~/Projects/Detroit Project/detroit-crime-education/data/clean")
+crime = read.csv("zip-level-encoded-crime.csv")
+```
+
+## Plotting Trends in Crime across the Years (Time)
+You can also embed plots, for example:
+```{r}
+crime
+
+#Aggregate over Years to find Clustering Model
+yearbackup = aggregate(crime,by=list(crime$YEAR), FUN= sum)
+yearbackup
+
+drops= c("X", "YEAR","ZIP_CHAR")
+yearbackup = yearbackup[, !names(yearbackup) %in% drops]
+yearbackup
+
+colnames(yearbackup)
+library(data.table)
+setnames(yearbackup, old = c('Group.1'), new = c('YEAR'))
+yearbackup
+
+```
+
+## Plotting Trends in Crime across ZIPS (Spatial)
+```{r}
+crime
+
+#Aggregate over Years to find Clustering Model
+zipbackup = aggregate(crime,by=list(crime$ZIP_CHAR), FUN= sum)
+zipbackup
+
+drops= c("X", "YEAR","ZIP_CHAR")
+zipbackup = zipbackup[, !names(zipbackup) %in% drops]
+zipbackup
+
+setnames(zipbackup, old = c('Group.1'), new = c('ZIP'))
+zipbackup
+
+```
+## To do later!!!
+```{r}
+library(ggplot2)
+library(reshape2)
+d <- melt(yearbackup, id.vars="YEAR")
+
+# Everything on the same plot
+ggplot(d, aes(year,value, col=variable)) + 
+  geom_point() + 
+  stat_smooth() 
+
+# Separate plots
+ggplot(d, aes(year, value)) + 
+  geom_point() + 
+  stat_smooth() +
+  facet_wrap(~variable)
+
+```
+##Analyze Zip Level Data
+Most types of crimes seem to be correlated with high corr values!!!
+The neighborhoods that have crime, have all kinds of crime!
+```{r}
+
+zipbackup
+colnames(zipbackup)
+
+keeps = ""
+zipshort = zipbackup[,c("ZIP","NUM_SUBSTANCE","NUM_WHITECOLLAR", "NUM_PROPERTY_RELATED","NUM_VIOLENT") ]
+plot(zipshort)
+
+cor(zipshort$NUM_SUBSTANCE, zipshort$NUM_WHITECOLLAR)
+
+The
+```
+
+##Cluster Analysis
+http://www.sthda.com/english/wiki/cluster-analysis-in-r-unsupervised-machine-learning
+
+```{r}
+# Install factoextra and cluster
+#install.packages("factoextra")
+#install.packages("cluster")
+
+library(factoextra)
+library(cluster)
+```
+
+## Let the cool visualization of distance between zips begin!
+```{r}
+
+scalezip = zipshort
+
+scalezip$ZIP = zipshort$ZIP
+rownames(scalezip) = scalezip$ZIP
+rownames(zipshort) = zipshort$ZIP
+
+scalezip$NUM_SUBSTANCE = scale(zipshort$NUM_SUBSTANCE) #Don't scale ZIP
+scalezip$NUM_WHITECOLLAR = scale(zipshort$NUM_WHITECOLLAR)
+scalezip$NUM_VIOLENT = scale(zipshort$NUM_VIOLENT)
+scalezip$NUM_PROPERTY_RELATED = scale(zipshort$NUM_PROPERTY_RELATED)
+
+scalezip
+colnames(scalezip)
+rownames(scalezip) = scalezip[,"ZIP"]
+
+scalezip
+
+res.dist = get_dist(scalezip, stand =TRUE, method="pearson")
+fviz_dist(res.dist, gradient = list(low = "#00AFBB", mid = "white", high = "#FC4E07"))
+
+#res.dist
+res.dist2 = get_dist(scalezip, stand =TRUE, method="euclidean")
+fviz_dist(res.dist2, gradient = list(low = "#00AFBB", mid = "white", high = "#FC4E07"))
+
+```
+#Let's do K-means clustering
+How many clusters do we need? *8*
+```{r}
+fviz_nbclust(zipshort, kmeans, method = "gap_stat")
+
+```
+
+
+```{r}
+km.res <- kmeans(zipshort, 5, nstart = 25)
+
+# Visualize
+fviz_cluster(km.res, data = zipshort, frame.type = "convex")+ theme_minimal()
+```
+
+
+
+
+```{r}
+pam.res <- pam(zipshort, 5)
+# Visualize
+fviz_cluster(pam.res)
+```
+
+```{r}
+set.seed(20)
+zipCluster <- kmeans(zipshort[, 2:5], 5, nstart = 20)
+zipCluster
+
+```
+```{r}
+
+
+zips <- zipshort$ZIP
+zipCluster$cluster
+
+set1 = zips[zipCluster$cluster==1]
+set2 = zips[zipCluster$cluster==2]
+set3 = zips[zipCluster$cluster==3]
+set4 = zips[zipCluster$cluster==4]
+set5 = zips[zipCluster$cluster==5]
+
+set1
+
+zipshort$CLUSTER = 1
+zipshort$CLUSTER = ifelse(zipshort$ZIP %in% set1, 1,  
+                          ifelse(zipshort$ZIP %in% set2, 2,  
+                                 ifelse(zipshort$ZIP %in% set3, 3,  
+                                        ifelse(zipshort$ZIP %in% set4, 4, 5) ) ) )
+zipshort
+
+zipshort$CLUSTER = ifelse(zipshort$CLUSTER ==1, "EXTREME",  
+                          ifelse(zipshort$CLUSTER ==2, "HIGH",  
+                                 ifelse(zipshort$CLUSTER ==3, "SAFE",  
+                                        ifelse(zipshort$CLUSTER ==4, "MEDIUM", "LOW") ) ) )
+
+zipshort$CLUSTER = as.factor(zipshort$CLUSTER)
+levels(zipshort$CLUSTER)
+zipshort$CLUSTER = factor(zipshort$CLUSTER, levels = c("SAFE", "LOW", "MEDIUM","HIGH","EXTREME"))
+
+levels(zipshort$CLUSTER)
+zipshort
+
+```
+
+##Save Files for Further Analysis
+```{r}
+write.csv(zipshort, "zip-level-crime-clusters.csv")
+write.csv(yearbackup, "year-level-crimes.csv")
+```
+
+
+
+##Using GGPLOT ot Visualize Cluster
+```{r}
+head(zipshort)
+#Already cluster is a factor, no need to convert
+#zipshort$cLUSTER <- as.factor(zipshort$cLUSTER)
+ggplot(data=zipshort, aes(NUM_WHITECOLLAR, NUM_VIOLENT, color = CLUSTER)) + geom_point()
+
+ggplot(data=zipshort, aes(NUM_PROPERTY_RELATED, NUM_SUBSTANCE, color = CLUSTER)) + geom_point()
+
+
+```
+
+Visualizing R!
+https://cran.r-project.org/web/packages/broom/vignettes/kmeans.html
+
+```{r}
+set.seed(2014)
+points <-zipshort %>% group_by(CLUSTER) %>%
+    do(data.frame(NUM_WHITECOLLAR=rnorm(.$size[1], .$NUM_WHITECOLLAR[1]),
+                  x2=rnorm(.$size[1], .$x2[1])))
+
+library(ggplot2)
+ggplot(points, aes(x1, x2, color=cluster)) + geom_point()
+```
+
+#Doing PCA & K-Means (NOT DONE)
+```{r}
+zipshort
+# log transform 
+log.zipshort <- log(zipshort[, 2:5])
+zipcodes <- zipshort$ZIP
+clusters = zipshort$CLUSTER 
+
+# apply PCA - scale. = TRUE is highly 
+# advisable, but default is FALSE. 
+
+
+zip.pca <- prcomp(log.zipshort,
+                 center = TRUE,
+                 scale. = TRUE) 
+
+
+```
+
+
+
+```{r}
+
+
+
+```

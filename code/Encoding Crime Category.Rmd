@@ -1,0 +1,152 @@
+---
+title: "Crime-Category-Encoded"
+author: "vaibhavi"
+date: "March 4, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Loading the data
+
+```{r}
+setwd("~/Projects/Detroit Project")
+crime=read.csv("crimewithzips.csv")
+```
+
+## Keeping relevant data
+
+```{r}
+colnames(crime)
+drops=c("X","CASEID", "ADDRESS", "SCA", "CENSUSTRACT")
+
+crime = crime[, !names(crime) %in% drops]
+colnames(crime)
+
+#crime[crime$CATEGORY=="ESCAPE",] #Fugitive
+#crime[crime$CATEGORY=="ENVIRONMENT",] #Runaway (Teenagers?)
+#crime[crime$CATEGORY=="KIDNAPING",]
+#crime[crime$CATEGORY=="OBSTRUCTING JUDICIARY",] # Parole Violation
+crime[crime$CATEGORY=="OBSTRUCTING THE POLICE",] #Resisting Arrest
+```
+
+
+## Adding category-specific crime  columns
+Top 15 crime categories are:
+ASSAULT
+LARCENY
+BURGLARY
+DAMAGE TO PROPERTY
+STOLEN VEHICLE
+
+AGGRAVATED ASSAULT
+MURDER/INFORMATION
+TRAFFIC
+FRAUD
+ROBBERY
+
+DANGEROUS DRUGS
+WEAPONS OFFENSES
+ESCAPE
+OBSTRUCTING JUDICIARY
+DISORDERLY CONDUCT
+
+NUM_CRIMES column must be added as well
+
+```{r}
+crime$NUM_CRIMES = 1
+
+# Top 15 crimes in Wayne County
+crime$NUM_ASSAULT <- ifelse(crime$CATEGORY == "ASSAULT", 1, 0)
+crime$NUM_LARCENY <- ifelse(crime$CATEGORY == "LARCENY", 1, 0)
+crime$NUM_BURGLARY <- ifelse(crime$CATEGORY == "BURGLARY", 1, 0)
+crime$NUM_PROPERTY <- ifelse(crime$CATEGORY == "DAMAGE TO PROPERTY", 1, 0)
+crime$NUM_AUTOTHEFT <- ifelse(crime$CATEGORY == "STOLEN VEHICLE", 1, 0)
+
+crime$NUM_AGG_ASSAULT <- ifelse(crime$CATEGORY == "AGGRAVATED ASSAULT", 1, 0)
+crime$NUM_MURDER <- ifelse(crime$CATEGORY =="MURDER/INFORMATION", 1, 0)
+crime$NUM_TRAFFIC <- ifelse(crime$CATEGORY == "TRAFFIC", 1, 0)
+crime$NUM_FRAUD <- ifelse(crime$CATEGORY == "FRAUD", 1, 0)
+crime$NUM_ROBBERY <- ifelse(crime$CATEGORY == "ROBBERY", 1, 0)
+
+crime$NUM_DRUGS <- ifelse(crime$CATEGORY == "DANGEROUS DRUGS", 1, 0)
+crime$NUM_WEAPONS <- ifelse(crime$CATEGORY == "WEAPONS OFFENSES", 1, 0)
+crime$NUM_ESCAPE <- ifelse(crime$CATEGORY == "ESCAPE", 1, 0)
+crime$NUM_OBSTRUCT <- ifelse(crime$CATEGORY == "OBSTRUCTING JUDICIARY", 1, 0)
+crime$NUM_CONDUCT <- ifelse(crime$CATEGORY == "DISORDERLY CONDUCT", 1, 0)
+
+# Violent Crimes
+crime$NUM_VIOLENT <- ifelse(crime$CATEGORY %in% c("HOMICIDE","NEGLIGENT HOMICIDE", "JUSTIFIABLE HOMICIDE", "MURDER/INFORMATION", "SEX OFFENSES", "AGGRAVATED ASSAULT", "ASSAULT", "KIDNAPING"), 1, 0)
+
+
+# Property
+crime$NUM_PROPERTY_RELATED <- ifelse(crime$CATEGORY %in% c("ARSON","LARCENY", "DAMAGE TO PROPERTY", "STOLEN PROPERTY", "OTHER BURGLARY", "ROBBERY", "STOLEN VEHICLE", "BURGLARY"), 1, 0)
+
+
+# Youth-Related Crimes
+crime$NUM_YOUTH <- ifelse(crime$CATEGORY %in% c("LARCENY","DRUNKENNESS", "LIQUOR", "OUIL", "DAMAGE TO PROPERTY", "STOLEN PROPERTY", "OBSCENITY", "DISORDERLY CONDUCT","DANGEROUS DRUGS", "ASSAULT", "VAGRANCY (OTHER)","RUNAWAY","OBSTRUCTING THE POLICE", "TRAFFIC OFFENSES", "TRAFFIC", "ENVIRONMENT"), 1, 0)
+
+# White Collar Crime
+crime$NUM_WHITECOLLAR <- ifelse(crime$CATEGORY %in% c("FORGERY","FRAUD", "BRIBERY", "EMBEZZLEMENT", "EXTORTION"), 1, 0)
+
+# Substance Abuse Related Crime
+crime$NUM_SUBSTANCE <- ifelse(crime$CATEGORY %in% c("DRUNKENNESS", "LIQUOR", "OUIL","DANGEROUS DRUGS"), 1, 0)
+
+
+colnames(crime)
+
+```
+## Save the Incident Level Data
+1211903 rows, 36 columns
+```{r}
+head(crime)
+colnames(crime)
+dim(crime)
+write.csv(crime, "encoded-crime-incidents.csv")
+colnames(crime)
+```
+
+
+
+## Sanity Check Before Aggregating to Per Year, Per Zip data
+
+579 rows, 23 columns
+```{r}
+head(crime)
+colnames(crime)
+#Drop any columns that cannot be grouped for Yearly  Zip data
+drops = c("ROWNUM", "CATEGORY", "OFFENSEDESCRIPTION", "INCIDENTDATE","HOUR","PRECINCT","COUNCIL","NEIGHBORHOOD","LON","LAT", "LOCATION", "MONTH", "FINALZIP")
+backup = crime[ , ! names(crime) %in% drops]
+
+#22 columns
+colnames(backup)
+head(backup)
+backup = aggregate(backup, by=list(backup$YEAR, backup$ZIP_CHAR), FUN=sum)
+
+head(backup)
+backup$YEAR <- NULL
+backup$ZIP_CHAR <-NULL
+#library(data.table)
+setnames(backup, old = c('Group.1','Group.2'), new = c('YEAR','ZIP_CHAR'))
+backup
+
+dim(backup)
+```
+
+
+## Plotting Data (To be Done Later)
+```{r}
+#library(ggplot2)
+#ggplot(backup, aes(YEAR,value, col=variable)) + 
+ # geom_point() + 
+  #stat_smooth() 
+```
+
+
+
+## Saving the  Aggregate data
+```{r}
+write.csv(backup, "zip-level-encoded-crime.csv")
+```

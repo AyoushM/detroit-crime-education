@@ -1,0 +1,253 @@
+---
+title: 'Skill Share - Linear Regression 2'
+author: "Nelson Dsouza"
+date: "Nov 4, 2016"
+output: pdf_document
+---
+
+# Overview and Goals
+
+In this lab, we will:
+
+* Learn how to use \texttt{R} for linear regression
+* Examine data from the "Brexit" vote through a statistical modeling framework
+
+
+# Brexit Data and model
+
+Today, we will be looking at recent data from the UK "Brexit" vote. If you, like many Britons[^1], aren't familiar with the European Union is, you can read more about the whole story here 
+
+[^1]: Google searches for ``What is the EU" spiked in the UK. Unfortunately, the spike occurred after the vote had occurred. \url{http://www.npr.org/sections/alltechconsidered/2016/06/24/480949383/britains-google-searches-for-what-is-the-eu-spike-after-brexit-vote}
+
+\begin{centering}
+\url{http://www.vox.com/2016/6/17/11963668/brexit-uk-eu-explained}.
+\end{centering}
+
+For each local authority, we will assume that the response variable 
+
+* $Y$: the percentage of individuals who voted to remain in the European Union[^2]
+
+[^2]: Data from the UK Electoral Commission :
+http://www.electoralcommission.org.uk/find-information-by-subject/elections-and-referendums/past-elections-and-referendums/eu-referendum/electorate-and-count-information}
+
+has a linear relationship with the following explanatory variables[^3]:
+
+* $X_1$: Percentage of individuals born in the UK
+* $X_2$: Percentage of individuals with no formal education beyond compulsory education
+* $X_3$: Percentage of individuals working in manufacturing
+* $X_4$: Percentage of individuals working in finance
+* $X_5$: Percentage of individuals over the age of 60
+* $X_6$: Percentage of individuals between the ages of 20 and 35
+
+[^3]: Data from the 2011 Census is available from the UK National Archives: http://webarchive.nationalarchives.gov.uk/content/20160105160709/http://ons.gov.uk/ons/data/dataset-finder
+
+In particular, we will assume the following model:
+
+\[Y_{i} = \beta_0 +  \beta_{1} X_{1,i} + \beta_{2} X_{2,i} + \beta_{3} X_{3, i} + \beta_{4} X_{4,i} + \beta_{5} X_{5,i} + \beta_{6} X_{6,i} + \epsilon_i \]
+
+where $\epsilon_i \sim N(0, \sigma^2)$ is a normally distributed random variable.
+
+Note that the following 4 assumptions are baked into the model statement above
+
+1. Conditional Independence: the response variables across individuals are mutually independent given the explanatory variables
+2. Linearity: the response variable is mutually a linear function of the explanatory variables and the noise
+3. Constant variance: The error term is drawn from the same distribution across all individuals
+4. Normality: In particular, the error terms are drawn from the same Normal distribution
+
+When these assumptions are not true, the least squares interpretation is still often very useful and worth considering. For instance, even if the relationship is not linear, can we describe the general trend or at least the sign? However, the resulting inference and hypothesis testing (which we will see at the end of this lab) will not generally be correct.
+
+#### Questions
+* How do the $\epsilon$'s arise in this context? Why is there randomness in our model? Is it measurement error? Unmeasured variability?
+
+Each row in the data represents a local authority/distinct in either England or Wales. The "Brexit" vote took place in 2016, and the explanatory variables were collected in the 2011 census. 9 local authorities with missing data have been removed.
+
+```{r}
+# Load data
+brexit.data <- read.csv("uk_data.csv")
+names(brexit.data)
+```
+
+We can use the \texttt{pairs} command to plot the many pairs of variables at once. Note that we've excluded the first column here, since that's just the name of local authority
+```{r, fig.height = 6, fig.width = 6, fig.align = "center"}
+pairs(brexit.data[, -1], pch = 19, cex = .7, upper.panel = NULL)
+```
+
+
+#### Questions
+* Does this look like what you might expect?
+* What sticks out?
+* Do the relationships between the explanatory and response variables look roughly linear?
+
+
+Note that we do not necessarily need pairwise linearity to hold in order for the response variable to be linear in all of the covariates, but it is a good place to start. For example, consider
+\[Y_i = \beta_0 + \beta_1X_{i} + \beta_2X^2_i + \epsilon_i\]
+Here, it is very clear that $Y_i$ is not a linear function of either $X_i$ or $X^2_i$, but it is a linear function of the covariates together.
+
+
+We will use the  \texttt{lm} command to fit a linear regression, and we need to specify specific model in a formula. On the left hand side of the $\sim$, we have the response variable. On the right hand side of the $\sim$, we have the explanatory variables which are separated by the $+$ sign. 
+
+```{r}
+output <- lm(pct_remain ~ uk_born + no_edu + mfct +
+               finance + over_60 + over_20_less_than35, data = brexit.data)
+```
+
+We can get the output using the \texttt{summary} function. It shows each of the estimated coefficients, as well as standard errors and p-values.
+```{r}
+summary(output)
+```
+
+The interpretation of the coefficients can be a bit subtle since we are including multiple variables: "When fixing all other explanatory variables, a change in $X_1$ is associated with a $b_1$ unit change in Y." One way to think about this is to imagine two local authorities which are the same in all other explanatory variables, except one local authority has an $X_1$ value which is larger than the other local authority by 1 unit. Then we would expect the $Y$ value to be larger by $b_1$ units. This allows us to start decomposing the association between the response variable and the explanatory variables into different components and measure the relative impact (via the size of the coefficient) of each variable. 
+
+Our null hypothesis would be defined generically as - "Given the assumtions of linear regression, the response variable is associated with the explanatory variables". In order to have a model with good internal and external validity, the null hypothesis needs to be disproved.
+
+
+#### Questions
+
+* How would you define normality of data in this context
+* How would you define the null hypothesis in this context
+* How would you interpret p-value
+* How would you interpret each of the estimated coefficients above?
+* Does the magnitude (size) of the coefficients agree with what you would've guessed? 
+* Can we say that increasing $X_1$ causes $Y$ to increase by some amount?
+
+## Statistical significance and Confidence Intervals
+
+Imagine if the election was re-run the next day, and we gathered new $Y$ values. Because there is sampling variability in how each person is feeling that day and who decides to vote, the resulting \% of voters who vote to stay in the EU will change slightly in each hypothetical revote. As a result we would also get slightly different $\beta$ values. So can we be sure that the sign of the $\beta$'s are what we estimate and can we even decide if the $\beta \neq 0$?  
+
+The standard errors (provided by the \texttt{summary} function) are estimates of the standard deviations of the $\beta$'s if we had many hypothetical revotes. This gives us a way to test whether or not the $\beta$ are significantly different from 0 (ie have no effect on $Y$). The resulting p-values are also shown by the \texttt{summary} function. 
+
+Recall that p-values should be interpreted as-
+
+> If the null hypothesis is true (in this case the null hypothesis is $\beta=0$), what is the probability that we would get a result as or more extreme as what we actually observed
+
+Generally, if the p-value is less than .05, we reject the null hypothesis in favor of the alternative. However, we should be very careful in the interpretation of the p-value here since they are very much dependent on the assumptions we have made.  
+
+We can also construct confidence intervals for each parameter in our regression via the \texttt{confint} function which gives an upper and lower bound for confidence intervals of a specified level.
+
+```{r}
+confint(output, level = .95)
+```
+
+Recall that a confidence interval with level $c$ should be interpreted as-
+
+> If we repeat this experiment (in this case election) many times and constructed a confidence interval each time, $c$ of the confidence intervals we create will contain the true parameter
+
+From the output above, we can see that some of the confidence intervals contain 0 and some do not. In particular, we see that the variable's confidence intervals which do not contain 0, also have p-values smaller than .05 according to the output of \texttt{summary}. We would conclude that these variables have a significant effect on the response variable at the 95\% significance level.
+
+## Goodness-of-fit and Model Selection
+
+Note that for an incredibly complex decision (whether or not to stay in the EU), a few high level variables explain a very large portion of the variability in our response variable with $r^2= .74$. However, it is worth noting that we are modeling the \% of voters to stay in the EU at the local authority level, not at the individual level, which would be a much harder problem. 
+
+The coefficients for the \% of individuals born in the UK and the \% of individuals working in the finance industry are not statistically significant according to the confidence intervals and hypothesis tests. Let's fit a model without those variables and compare to the original model.
+
+```{r}
+output_subset <- lm(pct_remain ~ no_edu + mfct +
+                      over_60 + over_20_less_than35, data = brexit.data)
+summary(output_subset)
+```
+
+
+Although removing the additional variables decreased the $R^2$ value, does it result in a "better" model? We can compare the BIC and AIC of each model. Including more variables in our regression will never decrease our likelihood, but is the increased "fit" of the model worth the increased complexity? AIC and BIC balance the fit vs complexity trade-off and when selecting a model, we should generally choose models with lower AIC or BIC scores. When $L$ is the log-likelihood
+
+\[AIC = -2 \times L + 2 \times (p+1)\]
+\[BIC = -2 \times L + \log(n) \times (p+1)\]
+
+so models with lower AIC / BIC are preferred.
+
+```{r}
+BIC(output)
+BIC(output_subset)
+
+AIC(output)
+AIC(output_subset)
+```
+
+#### Questions
+* How do the $R^2$ values compare when we remove the non-significant variables? Will this always be the case?
+* According to the BIC and AIC values, which model should we choose?
+
+## Checking Model Assumptions
+We can get the residuals from the fitted model using the $\$$residuals field of the \texttt{lm} object. We can use these to check our assumptions. First, we can check whether or not the errors seem normally distributed by simply plotting a histogram of the residuals. Note that we assumed the errors are normally distributed when we use the true $\beta$'s so in general, the residuals are not exactly the $\epsilon$, but simply estimates of them. Thus, we wouldn't expect the $\beta$'s to be exactly normally distributed, but they should at least be close. We plot a histogram of the residuals with the corresponding normal distribution shown in red.
+
+```{r}
+# plot a histogram of the residuals
+hist(output_subset$residuals, freq = F)
+lines(seq(-.2, .2, by = .01),
+      dnorm(seq(-.2, .2, by = .01), mean(output_subset$residuals),
+            sd(output_subset$residuals)), col = "red")
+```
+
+We can check the observed values vs the residuals. If our assumptions hold (linearity and constant variance), we would expect a scatterplot with no obvious pattern and relatively constant variance throughout the x-axis.
+
+```{r}
+plot(brexit.data$pct_remain, output_subset$residual, xlab = "Observed %",
+     ylab = "residuals")
+abline(h = 0, col = "red")
+```
+
+Finally, we can also take a look at the fitted values using the $\$$fitted.values field. A plot of fitted vs observed values can also be useful for detecting assumption violations.
+
+```{r}
+plot(brexit.data$pct_remain, output_subset$fitted.values, xlab = "Observed %",
+     ylab = "Fitted %")
+abline(a = 0, b = 1, col = "red")
+```
+
+#### Questions
+* If assumption 2 is violated, what might the observed vs residuals plot look like?
+* If assumption 3 is violated, what might the observed vs residuals plot look like?
+* If assumption 4 is violated, what might the observed vs residuals plot look like?
+* Do the assumptions seem justified for our data? Why or why not?
+
+Testing assumption 1 (independence) is a bit more complicated and generally involves scientific knowledge for how potential dependence might be occuring. In this case, there might be some spatial dependence where counties next to each other might have correlated $\epsilon$'s. One way to check this would be to plot a map color coded by the size (and sign) of the residual. If there are areas where the residuals are similar (all positive or all negative), that might be evidence of spatial dependence. We could have used the "maps" package for this but it does not have good capabilities for the UK.
+
+How we would test our model?
+
+Most often we
+1. Divide our data in training and testing sets
+2. Build model on training set
+3. Test for accuracy of model on testing set
+
+```{r}
+set.seed(1)
+# Considering a 80-20 split for testing and validation
+pct <- floor(0.7 * nrow(brexit.data))
+train.size <- sample(seq_len(nrow(brexit.data)), size = pct)
+train <- brexit.data[train.size, ]
+test <- brexit.data[-train.size, ]
+
+# Creating model on training data
+output_train <- lm(pct_remain ~ no_edu + mfct +
+                      over_60 + over_20_less_than35, data = train)
+summary(output_train)
+
+# Predicting using our linear model
+predicted <- as.data.frame(predict(output_train, newdata = test))
+
+# Creating a dataframe with our results
+rownames(test$pct_remain) <- NULL
+rownames(predicted) <- NULL
+result <- as.data.frame(cbind(round(test$pct_remain,digits=3),
+                              round(predicted, digits=3),
+                              round(test$pct_remain - predicted, digits=3)))
+colnames(result) <- c("Original", "Predicted", "Difference")
+result
+
+# Average predicted difference
+sqrt(sum((result$Difference^2)))/nrow(test)
+```
+
+#### Questions
+* Why do you think we have such a good accuracy?
+
+A way to avoid Overfitting is Cross Validation!
+Very Very Important - Never test on your training data.
+
+
+---
+
+---
+
+*Credits - 1. Y. Samuel Wang, PhD student, Statistics Department, University of Washington.*
+
+*Some of the R code used in this demo has been used from R code prepared by Samuel Wang for the class CS&SS 589 (Fall 2016)*

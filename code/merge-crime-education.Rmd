@@ -15,6 +15,7 @@ Year, ZIP, No of crimes, No of schools in district, Mean Graduation Rate, Mean D
 #setwd("~/Projects/Detroit Project")
 crime <- read.csv("crimewithzips.csv")
 colnames(crime)
+#checkin
 ```
 [1] "X"                  "ROWNUM"             "CASEID"             "ADDRESS"           
 [5] "CATEGORY"           "OFFENSEDESCRIPTION" "INCIDENTDATE"       "HOUR"              
@@ -192,12 +193,84 @@ write.csv(simple.crime,"zip_level_crime.csv")
 
 ## Merging the two simple models for education and crime!
 ```{r}
+simple.crime$YEAR <- as.numeric(as.character(simple.crime$YEAR))
+edu_crime <- merge(edu.grad, simple.crime,by.x=c("GRAD_YEAR","ZIP"),by.y=c("YEAR","ZIP"),all.x = TRUE)
+simple.crime <- data.table(simple.crime)
+edu_crime$NUM_CRIMES[is.na(edu_crime$NUM_CRIMES)] <- 0
+edu_crime
 
+write.csv(edu_crime,"edu-crime-merged.csv")
+```
 
+```{r}
+setwd("~/Projects/Detroit Project/detroit-crime-education/data/clean")
+simple.crime=read.csv("zip_level_crime.csv")
+edu_crime=read.csv("edu-crime-merged.csv")
 ```
 
 
 ## Machine Learning! Regression Models
 ```{r}
 
+edu_crime <- data.table(edu_crime)
+cor(edu_crime$NUM_CRIMES,edu_crime$DROP_RATE)
+#Converting Zip and Year to Factors
+edu_crime$ZIP <- as.factor(edu_crime$ZIP)
+edu_crime$GRAD_YEAR <- as.factor(edu_crime$GRAD_YEAR)
+
+edu_crime
+
+levels(edu_crime$ZIP)
+
+#Creating a basic Linear Regression Model 
+library(MASS)
+crmodel <- lm( NUM_CRIMES~GRAD_YEAR+ZIP+NUM_COHORT,data=edu_crime)
+summary(crmodel)
+
+plot(crmodel)
+abline(crmodel)
+
+#Model without zips
+crmodel2 <- lm(NUM_CRIMES ~ DROP_RATE,data=edu_crime)
+summary(crmodel2)
+
+
+ggplot(data = edu_crime,aes(x=DROP_RATE,y=NUM_CRIMES))+
+  geom_point()
+
+
+ggplot(data = edu_crime,aes(x=GRAD_RATE,y=NUM_CRIMES))+
+  geom_point()
+
+
+#Step AIC to 
+step <- stepAIC(crmodel, direction="both")
+step$anova
+summary(step)
+
+```
+```{r}
+# TO DO: Add Better Models
+
+edu_crime <- data.table(edu_crime)
+edu_crime[order(edu_crime$ZIP, edu_crime$GRAD_YEAR),]
+edu_crime$DELTADROP <- 0
+edu_crime$DELTACRIME <- 0
+
+for(i in 2:nrow(edu_crime)){
+  edu_crime[i,"DELTADROP"] <- (edu_crime[i,"DROP_RATE"]-edu_crime[i-1,"DROP_RATE"])/edu_crime[i,"DROP_RATE"]
+}
+
+
+```
+
+```{r}
+setwd("~/Projects/Detroit Project/detroit-crime-education/data/clean")
+educate <- read.csv("zip_level_education_grad.csv")
+colnames(educate)
+```
+
+```{r}
+educate <- data.table(educate)
+educate[ZIP %in% c(48205, 48219, 48224, 48227, 48228, 48235),]
 ```

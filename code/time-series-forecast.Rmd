@@ -1,0 +1,236 @@
+---
+title: "Time Series"
+author: "Shrawan Sher"
+date: "3/5/2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+library(lubridate)
+library(reshape) 
+library(data.table)
+library(astsa)
+library(forecast)
+
+#Fetching the crime data 
+crime <- read.csv("crimewithzips.csv")
+colnames(crime)
+
+#Selecting just month and year columns
+crimebytime <- crime[,c(17:18)]
+
+#Adding a dummy column for crime count
+crimebytime$DUMMY <- 1
+head(crimebytime)
+```
+
+
+```{r}
+#Casting the data across Year and month 
+tseries <- dcast(crimebytime, YEAR~MONTH,fun.aggregate = sum,value.var = "DUMMY")
+
+#Converting the cast into a vector
+tsr <-as.vector(t(tseries[,2:13]))
+
+#Removing crime data for 2017
+tsr <- tsr[1:96]
+
+#Time series till Jun 2016
+ts2016 <- tsr[1:90]
+ts2016 <- ts(ts2017,frequency = 12, start=c(2009,1))
+
+#Creating a time series till Dec 2016
+times <- ts(tsr,frequency=12,start=c(2009,1))
+
+require(xts)
+pcp <- rnorm(24)
+
+plot(as.xts(times),major.format = "%Y-%m",main="Number of crimes reported 2009-2016" ,ylab="Number of Crimes",xlab="Year-Month")
+
+plot(as.xts(ts2016),major.format = "%Y-%m",main="Number of crimes reported 2009:Jun-2016" ,ylab="Number of Crimes",xlab="Year-Month")
+
+```
+
+
+```{r}
+
+#Decomposition of the time series
+comp <- decompose(times)
+plot(comp)
+
+#Same thing
+timestl <- stl(times,s.window = "periodic")
+decomp <- timestl$time.series[,3]
+plot(decomp, main="Decomposed Signals for Crime")
+
+#Remove the seasonality from the time series
+#deseasonalcrime <- seasadj(timestl)
+#plot(deseasonalcrime,main="Deseasonal Time series for Crime")
+
+
+#Stationarity
+#Using Augmented Dicky-Fuller Test to check if the decomposed signal is stationary
+# Formal statistical test for stationarity
+library(tseries)
+adf.test(decomp, alternative = "stationary")
+#P values is 0.01 confirming alternate hypothesis that the signal is stationary
+
+#ACF Test for checking stationarity
+'Autocorrelation plots (also known as ACF or the auto correlation function) are a useful visual tool in determining whether a series is stationary. These plots can also help to choose the order parameters for ARIMA model. If the series is correlated with its lags then, generally, there are some trend or seasonal components and therefore its statistical properties are not constant over time.'
+
+'ACF plots display correlation between a series and its lags. In addition to suggesting the order of differencing, ACF plots can help in determining the order of the M A (q) model. Partial autocorrelation plots (PACF), as the name suggests, display correlation between a variable and its lags that is not explained by previous lags. PACF plots are useful when determining the order of the AR(p) model.'
+
+Acf(decomp,main='')
+Pacf(decomp,main='')
+#Spikes at 1, 13 for pacf 
+auto.arima(times, seasonal=TRUE)
+
+#Can we trust this model? We can start by examining ACF and PACF plots for model residuals. 
+#If model order parameters and structure are correctly specified, 
+#we would expect no significant autocorrelations present. 
+
+fit<-auto.arima(times, seasonal=TRUE)
+tsdisplay(residuals(fit), lag.max=45, main=' Model Residuals')
+fit
+#Forecasting
+fcast1 <- forecast(fit, h=6)
+plot(fcast1)
+
+```
+
+```{r}
+#Repeating the entire forecasting process for data upto June 2016
+
+#Same thing
+decomp2 <- stl(ts2016,s.window = "periodic")
+plot(decomp2)
+
+#Extract the stationary signal remaining after removing seasonal and trend signas
+decomp2 <- timestl$time.series[,3]
+#plot(decomp2, main="Decomposed Signals for Crime")
+
+#Stationarity
+# formal statistical test for stationarity
+adf.test(ts2016, alternative = "stationary")
+#Acf(ts2016,main='')
+#Pacf(ts2016,main='')
+#Spikes at 1, 13 for pacf 
+
+#Can we trust this model? We can start by examining ACF and PACF plots for model residuals. 
+#If model order parameters and structure are correctly specified, 
+#we would expect no significant autocorrelations present. 
+
+fit2_<-auto.arima(ts2016, seasonal=TRUE)
+fit2
+#tsdisplay(residuals(fit2), lag.max=45, main='(1,1,0)(1,0,0)[12] Model Residuals')
+
+#Forecasting
+fcast2 <- forecast(fit2, h=12)
+plot(fcast2)
+
+```
+```{r}
+gettimeseries <- function(x){
+  #x$DUMMY <- 1
+    #Casting the data across Year and month 
+  tseries <- dcast(x, YEAR~MONTH,fun.aggregate = sum,value.var = colnames(x)[3])
+  
+  #Converting the cast into a vector
+  tsr <-as.vector(t(tseries[,2:13]))
+  
+  #Removing crime data for 2017
+  tsr <- tsr[1:96]
+  
+  #Time series till Jun 2016
+ # ts2016 <- tsr[1:96]
+#  ts2016 <- ts(ts2017,frequency = 12, start=c(2009,1))
+  
+  #Creating a time series till Dec 2016
+  times <- ts(tsr,frequency=12,start=c(2009,1))
+  
+  require(xts)
+  pcp <- rnorm(24)
+  
+  plot(as.xts(times),major.format = "%Y-%m",main="Number of crimes reported 2009-2016" ,ylab="Number of Crimes",xlab="Year-Month")
+  
+#  plot(as.xts(ts2016),major.format = "%Y-%m",main="Number of crimes reported 2009:Jun-2016" ,ylab="Number of Crimes",xlab="Year-Month")
+  forecaster(times)
+}
+
+```
+
+```{r}
+forecaster <- function(timesiri){
+    #Decomposition of the time series
+    comp <- decompose(timesiri)
+    plot(comp)
+    
+    #Same thing
+    timestl <- stl(timesiri,s.window = "periodic")
+    decomp <- timestl$time.series[,3]
+    #plot(decomp, main="Decomposed Signals for Crime")
+    
+    #Stationarity
+    #Using Augmented Dicky-Fuller Test to check if the decomposed signal is stationary
+    # Formal statistical test for stationarity
+    library(tseries)
+    adf.test(decomp, alternative = "stationary")
+    #P values is 0.01 confirming alternate hypothesis that the signal is stationary
+    
+    #Acf(decomp,main='')
+    #Pacf(decomp,main='')
+    auto.arima(timesiri, seasonal=TRUE) 
+    
+    fit<-auto.arima(timesiri, seasonal=TRUE)
+    #tsdisplay(residuals(fit), lag.max=45, main=' Model Residuals')
+    fit
+    #Forecasting
+    fcast1 <- forecast(fit, h=6)
+    plot(fcast1)
+}
+```
+
+Are white collar increasing and violent crime decreasing
+```{r}
+encodedcrime <- read.csv("encoded-crime-incidents.csv")
+encodedcrime <- data.table(encodedcrime)
+```
+
+```{r}
+#AGGravated
+aggassault <- encodedcrime[CATEGORY=="AGGRAVATED ASSAULT" & YEAR < 2017,c("YEAR","MONTH")]
+gettimeseries(aggassault)
+
+whitecollar <- encodedcrime[YEAR<2017,c("YEAR","MONTH","NUM_WHITECOLLAR")]
+gettimeseries(whitecollar)
+
+autotheft <- encodedcrime[YEAR<2017,c("YEAR","MONTH","NUM_AUTOTHEFT")]
+gettimeseries(autotheft)
+
+drugs <- encodedcrime[YEAR<2017,c("YEAR","MONTH","NUM_SUBSTANCE")]
+gettimeseries(drugs)
+
+violent <- encodedcrime[YEAR<2017,c("YEAR","MONTH","NUM_VIOLENT")]
+gettimeseries(violent)
+
+traffic <- encodedcrime[YEAR<2017,c("YEAR","MONTH","NUM_TRAFFIC")]
+gettimeseries(traffic)
+
+burglary <- encodedcrime[YEAR<2017,c("YEAR","MONTH","NUM_BURGLARY")]
+gettimeseries(burglary)
+
+youth <- encodedcrime[YEAR<2017,c("YEAR","MONTH","NUM_YOUTH")]
+gettimeseries(youth)
+```
+
+#Where do crimes occur
+
+
+
+
+#Machine Learning
